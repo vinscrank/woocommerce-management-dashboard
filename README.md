@@ -1,4 +1,4 @@
-# wooCommerce-management-dashboard
+# woocommerce-management-dashboard
 
 This project is a **management system** connected to **WooCommerce APIs** with a scalable architecture designed for future integrations.  
 
