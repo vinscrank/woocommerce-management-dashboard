@@ -1,5 +1,7 @@
 # wooCommerce-management-dashboard
 
+This project is a **management system** connected to **WooCommerce APIs** with a scalable architecture designed for future integrations.  
+
 The **Laravel API layer** acts as an abstraction over WooCommerce and stores data in a unified database.  
 This approach allows seamless integration with other e-commerce platforms in the future (e.g., **Shopify**) without changing the frontend.  
 
