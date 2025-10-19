@@ -1,0 +1,1273 @@
+import { useForm } from 'react-hook-form';
+import {
+  Box,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Grid,
+  Switch,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Chip,
+  Paper,
+  Alert,
+  CircularProgress,
+  IconButton,
+} from '@mui/material';
+
+import { useState, useEffect, useRef } from 'react';
+import { Prodotto } from 'src/types/Prodotto';
+import { Iconify } from 'src/components/iconify';
+import { InfoLabel } from 'src/components/InfoLabel';
+import { formatDateTime } from 'src/hooks/use-format-date';
+import { useGetCategorieConFiglie } from 'src/hooks/useGetCategorieConFiglie';
+import { useProdottoImmagini } from 'src/hooks/useProdottoImmagini';
+import { usePostProdotto } from 'src/hooks/usePostProdotto';
+import { usePutProdotto } from 'src/hooks/usePutProdotto';
+import { useDeleteProdotto } from 'src/hooks/useDeleteProdotto';
+import { useNavigate } from 'react-router-dom';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
+import { useGetTags } from 'src/hooks/useGetTags';
+import { ProdottoAttributiDatatable } from './prodotto-attributi-table';
+import { ProdottoVariazioniDatatable } from './prodotto-variazioni-datatable';
+import { STOCK_ENABLED } from 'src/utils/const';
+//import { CategorieTreeView, CategoryState } from 'src/components/CategorieTreeView';
+import { GenericModal } from 'src/components/generic-modal/GenericModal';
+import { NumericFormat } from 'react-number-format';
+import { useGetProdotto } from 'src/hooks/useGetProdotto';
+import { File as FileType } from 'src/types/File';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useUploadProdottoImmagini } from 'src/hooks/useUploadProdottoImmagini';
+import { SortableImage } from 'src/components/SortableImage/SortableImage';
+import { useExportProdotti } from 'src/hooks/useExportProdotti';
+import { Editor } from '@tinymce/tinymce-react';
+import { useGetFiles } from 'src/hooks/useGetFiles';
+import { UploadModal } from 'src/components/upload-modal/UploadModal';
+
+type ProdottoFormProps = {
+  prodotto: Prodotto | null;
+  prodottoId: string;
+  onSubmit: (data: any) => void;
+  onDelete?: (id: string, force: boolean) => void;
+  onSync?: () => void;
+  loading?: boolean;
+  errors?: string[];
+};
+
+export function ProdottoForm({
+  prodotto,
+  onDelete,
+  onSync,
+  loading = false,
+  errors = [],
+}: ProdottoFormProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors: formErrors },
+    setValue,
+    reset,
+    watch,
+  } = useForm<Prodotto>({
+    defaultValues: {
+      name: prodotto?.name || '',
+      sku: prodotto?.sku || '',
+      type: prodotto?.type,
+      status: prodotto?.status,
+      stockStatus: prodotto?.stockStatus,
+      onSale: prodotto?.onSale || false,
+      slug: prodotto?.slug || '',
+      shippingClass: prodotto?.shippingClass || '',
+      manageStock: STOCK_ENABLED === '1' ? prodotto?.manageStock || false : false,
+      stockQuantity: STOCK_ENABLED === '1' ? prodotto?.stockQuantity || 0 : 0,
+      regularPrice: prodotto?.regularPrice || '',
+      salePrice: prodotto?.salePrice || '',
+      price: prodotto?.price || '',
+      dateOnSaleFrom: prodotto?.dateOnSaleFrom || '',
+      dateOnSaleTo: prodotto?.dateOnSaleTo || '',
+      //meta_title: prodotto?.meta_title || '',
+      //meta_description: prodotto?.meta_description || '',
+      shortDescription: prodotto?.shortDescription || '',
+      description: prodotto?.description || '',
+      //categorie_id: prodotto?.categorie_id || [],
+      //tags_id: prodotto?.tags_id || [],
+      //immagini_nomi: prodotto?.immagini_nomi || [],
+      //deleted: prodotto?.deleted || false,
+      id: prodotto?.id || undefined,
+      permalink: prodotto?.permalink || '',
+      //abilitato: prodotto?.abilitato || true,
+      //prezzo_variazioni_uniforme: prodotto?.prezzo_variazioni_uniforme || true,
+      //immagini_nomi_string: Array.isArray(prodotto?.immagini_nomi)
+      //  ? prodotto?.immagini_nomi.join(',')
+      //  : prodotto?.immagini_nomi || '',
+    },
+  });
+
+  useEffect(() => {
+    if (prodotto) {
+      reset({
+        ...prodotto,
+        dateOnSaleFrom: prodotto.dateOnSaleFrom
+          ? dayjs(prodotto.dateOnSaleFrom).format('DD-MM-YYYY')
+          : undefined,
+        dateOnSaleTo: prodotto.dateOnSaleTo
+          ? dayjs(prodotto.dateOnSaleTo).format('DD-MM-YYYY')
+          : undefined,
+      });
+
+      // Aggiorna manualmente il campo calcolato ( importante perchè non è un campo del database)
+      // setValue(
+      //   'immagini_nomi_string',
+      //   Array.isArray(prodotto?.immagini_nomi)
+      //     ? prodotto.immagini_nomi.join(',')
+      //     : prodotto?.immagini_nomi || ''
+      // );
+    }
+  }, [prodotto, reset, setValue]);
+
+  const navigate = useNavigate();
+
+  const productType = watch('type');
+  const manageStock = watch('manageStock');
+
+  const prodottoTipi = [
+    { name: 'Variabile', value: 'variable' },
+    { name: 'Semplice', value: 'simple' },
+  ];
+
+  const prodottoStati = [
+    { name: 'Pubblicato', value: 'publish' },
+    { name: 'Privato', value: 'private' },
+    { name: 'Bozza', value: 'draft' },
+  ];
+
+  const stockStati = [
+    { name: 'Disponibile', value: 'instock' },
+    { name: 'Esaurito', value: 'outofstock' },
+    { name: 'Permette ordini arretrati', value: 'onbackorder' },
+  ];
+
+  // const { data: categorie } = useGetCategorieConFiglie();
+  // const { data: tags, isFetching, isRefetching } = useGetTags();
+  // const { rimuoviImmagine, isLoading: isImmaginiLoading } = useProdottoImmagini(
+  //   prodotto?.id as number
+  // );
+  const { mutate: storeProdotto, isPending: isStoreLoading } = usePostProdotto();
+  const { mutate: updateProdotto, isPending: isUpdateLoading } = usePutProdotto(
+    prodotto?.id as number
+  );
+  const { mutate: deleteProdotto, isPending: isDeleteLoading } = useDeleteProdotto(
+    prodotto?.id as number
+  );
+  const { mutate: uploadProdottoImmagini, isPending: isUploadImmaginiLoading } =
+    useUploadProdottoImmagini(prodotto?.id as number);
+
+  const { mutate: exportProdotto, isPending: isExportLoading } = useExportProdotti();
+  // Gestione upload immagini
+  const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+  const [allFiles, setAllFiles] = useState<File[]>([]);
+  const [selectedExistingFiles, setSelectedExistingFiles] = useState<FileType[]>([]);
+
+  // Aggiungi questi stati per gestire i valori dell'editor
+  const [shortDescription, setShortDescription] = useState(prodotto?.shortDescription || '');
+  const [fullDescription, setFullDescription] = useState(prodotto?.description || '');
+
+  // Aggiungi questo stato per gestire l'apertura/chiusura della modal
+  const [isCategorieModalOpen, setIsCategorieModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [showExistingFiles, setShowExistingFiles] = useState(false);
+
+  // Aggiorna i valori del form quando cambiano gli editor
+  useEffect(() => {
+    setValue('shortDescription', shortDescription as never);
+  }, [shortDescription, setValue]);
+
+  useEffect(() => {
+    setValue('description', fullDescription as never);
+  }, [fullDescription, setValue]);
+
+  // Configurazione dei moduli per l'editor Quill
+  const quillModules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ color: [] }, { background: [] }],
+      ['link', 'image'],
+      ['clean'],
+    ],
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setSelectedFiles(Array.from(event.target.files));
+    }
+  };
+
+  const handleDelete = (id: string, force: boolean) => {
+    deleteProdotto({ force });
+    if (onDelete) onDelete(id, force);
+  };
+
+  // Aggiungi questa funzione helper all'inizio del componente ProdottoForm
+  const getAccordionStyles = (title: string) => {
+    // Colori diversi per ogni tipo di accordion
+    const colorMap: Record<string, string> = {
+      'Azioni prodotto': '#e3f2fd',
+      'Categorie, Tag': '#fff',
+      Prezzi: '#fff',
+      Immagini: '#fff',
+      Magazzino: '#fff',
+      SEO: '#fff',
+    };
+
+    // Colori per i bordi
+    const borderMap: Record<string, string> = {
+      'Azioni prodotto': 'primary.dark',
+      'Categorie, Tag': 'success.main',
+      Prezzi: 'warning.main',
+      Immagini: 'secondary.main',
+      Magazzino: 'info.main',
+      SEO: 'error.main',
+    };
+
+    return {
+      borderRadius: 2,
+      mb: 2,
+      '& .MuiAccordionSummary-root': {
+        backgroundColor: colorMap[title],
+        borderRadius: '8px 8px 0 0',
+        transition: 'all 0.2s ease-in-out',
+        // padding: '12px 24px',
+        margin: '0px !important',
+        paddingY: '0px !important',
+        paddingX: '10px !important',
+
+        '& .MuiTypography-root': {
+          fontWeight: 600,
+          color: (theme: any) => theme.palette[borderMap[title]],
+        },
+      },
+      '& .MuiAccordionDetails-root': {
+        paddingY: '0px !important',
+        paddingX: '10px !important',
+        //backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      },
+    };
+  };
+
+  // Funzione per gestire l'upload delle immagini
+  const handleProdottoImmaginiUpload = async () => {
+    // Separiamo i file esistenti (con id) dai file nuovi (senza id)
+    const existingFiles = selectedFiles.filter((file) => file.id);
+    const newFiles = selectedFiles.filter((file) => !file.id);
+
+    // Per i file esistenti, prendiamo solo i nomi e li concateniamo
+    if (existingFiles.length > 0) {
+      const existingFileNames = existingFiles.map((file) => file.name).join(',');
+
+      // Aggiorniamo il campo immagini_nomi_string con i nomi esistenti
+      // const currentNames = watch('immagini_nomi_string') || '';
+      // const updatedNames = currentNames
+      //   ? `${currentNames},${existingFileNames}`
+      //   : existingFileNames;
+
+      // setValue('immagini_nomi_string', updatedNames);
+    }
+
+    // I file nuovi verranno gestiti normalmente nel submit del form
+    setAllFiles([...newFiles]);
+  };
+
+  // Funzione per rimuovere un'immagine
+  // const handleProdottoImmagineRimuovi = async (immagine: any) => {
+  //   if (prodotto?.id) {
+  //     await rimuoviImmagine(immagine.id);
+  //     if (onSync) onSync();
+  //   }
+  // };
+
+  // Effetto per caricare le immagini quando vengono selezionate
+  useEffect(() => {
+    if (selectedFiles.length > 0 && prodotto?.id) {
+      // Opzionalmente, puoi caricare automaticamente le immagini quando vengono selezionate
+      // handleProdottoImmaginiUpload();
+    }
+  }, [selectedFiles, prodotto?.id]);
+  //const categorie_id = watch('categorie_id');
+
+  // Verifica se il prodotto è in sconto
+  const verificaSconto = () => {
+    if ((watch('dateOnSaleFrom') || watch('dateOnSaleTo')) && !watch('salePrice')) {
+      alert('Inserisci prezzo sconto se è stato selezionato "Sconto DA" o "Sconto A"');
+      return false;
+    }
+    return true;
+  };
+
+  const resetAllFiles = () => {
+    setAllFiles([]);
+    setSelectedFiles([]);
+    setSelectedExistingFiles([]);
+  };
+
+  const salvaProdotto = async (formData: any) => {
+    if (prodotto?.id) {
+      updateProdotto(
+        { id: prodotto.id.toString(), data: formData },
+        {
+          onSuccess: () => {
+            handleProdottoImmaginiUpload();
+            upladingFiles(prodotto);
+            if (onSync) onSync();
+          },
+        }
+      );
+    } else {
+      storeProdotto(formData, {
+        onSuccess: async (prodotto: Prodotto) => {
+          handleProdottoImmaginiUpload();
+          upladingFiles(prodotto);
+          if (onSync) onSync();
+        },
+      });
+    }
+  };
+
+  const upladingFiles = async (prodotto: Prodotto) => {
+    await handleProdottoImmaginiUpload();
+    if (allFiles.length > 0) {
+      uploadProdottoImmagini({
+        prodotto_id: prodotto?.id?.toString() || '',
+        prodotto_immagine_principale: allFiles[0] as any,
+        prodotto_immagini: allFiles.slice(0) as any[],
+      });
+    }
+    resetAllFiles();
+  };
+
+  // Gestione del submit con verifica sconto
+  const handleFormSubmit = (data: any) => {
+    if (!verificaSconto()) {
+      return;
+    }
+
+    // Validazione del form
+    const isValid = Object.keys(formErrors).length === 0;
+    if (!isValid) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Conferma per prodotti eliminati
+    // if (prodotto?.deleted === true) {
+    //   if (
+    //     !window.confirm(
+    //       'Il prodotto non è presente su Woocomerce. Vuoi procedere con la pubblicazione su Woocomerce?'
+    //     )
+    //   ) {
+    //     return;
+    //   }
+    // }
+
+    const formData = {
+      ...data,
+      // immagini_nomi: data.immagini_nomi_string.split(','),
+      dateOnSaleFrom: data.dateOnSaleFrom
+        ? dayjs(data.dateOnSaleFrom, 'DD-MM-YYYY').format('YYYY-MM-DDTHH:mm:ss')
+        : undefined,
+      dateOnSaleTo: data.dateOnSaleTo
+        ? dayjs(data.dateOnSaleTo, 'DD-MM-YYYY').format('YYYY-MM-DDTHH:mm:ss')
+        : undefined,
+    };
+    console.log(formData);
+    salvaProdotto(formData);
+  };
+
+  // Aggiungi questa funzione per prevenire il comportamento predefinito del form
+  const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit(handleFormSubmit)();
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // const handleDragEnd = (event: any) => {
+  //   const { active, over } = event;
+
+  //   if (active.id !== over.id) {
+  //     const oldIndex = prodotto?.immagini.findIndex((img) => img.src === active.id);
+  //     const newIndex = prodotto?.immagini.findIndex((img) => img.src === over.id);
+
+  //     if (oldIndex !== undefined && newIndex !== undefined && prodotto?.immagini) {
+  //       // Crea un nuovo array di immagini con l'ordine aggiornato
+  //       const newImmagini = arrayMove(prodotto.immagini, oldIndex, newIndex);
+  //       const newImmaginiNomi = newImmagini.map((img) => img.src);
+  //       // Aggiorna il form e il prodotto
+  //       setValue('immagini_nomi', newImmaginiNomi);
+  //       setValue('immagini_nomi_string', newImmaginiNomi.join(','));
+
+  //       // Forza l'aggiornamento del componente aggiornando l'oggetto prodotto
+  //       if (prodotto) {
+  //         prodotto.immagini = [...newImmagini];
+  //         prodotto.immagini_nomi = [...newImmaginiNomi];
+  //       }
+  //     }
+  //   }
+  // };
+
+  // Aggiungi questo useEffect per gestire l'importazione automatica
+
+  //const { data: existingFiles, isFetching: isFetchingFiles } = useGetFiles();
+
+  const handleUploadModalConfirm = async () => {
+    await handleProdottoImmaginiUpload();
+    setIsUploadModalOpen(false);
+  };
+
+  return (
+    <Box>
+      {/* Aggiungiamo un header fisso con i pulsanti di azione */}
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 1100,
+          backgroundColor: 'background.paper',
+          borderColor: 'divider',
+          py: 2,
+          px: 2.5,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 0,
+        }}
+      >
+        <Typography variant="h4" maxWidth={600}>
+          {prodotto?.id ? prodotto.name : 'Nuovo prodotto'}
+        </Typography>
+
+        <Box display="flex" gap={2}>
+          {loading ||
+          isStoreLoading ||
+          isUpdateLoading ||
+          isDeleteLoading ||
+          isUploadImmaginiLoading ? (
+            <Box display="flex" alignItems="center">
+              <Typography variant="body2" mr={1}>
+                Aggiornamento prodotto
+              </Typography>
+              <CircularProgress size={20} />
+            </Box>
+          ) : (
+            <>
+              <Button
+                variant="outlined"
+                startIcon={<Iconify icon="eva:arrow-back-fill" />}
+                onClick={() => navigate('/prodotti')}
+              >
+                Lista prodotti
+              </Button>
+              {prodotto?.id && (
+                <>
+                  {(() => {
+                    const permalink = import.meta.env.DEV
+                      ? prodotto?.permalink?.replace('https://', 'http://')
+                      : prodotto?.permalink?.replace('https://', 'http://');
+                    return (
+                      <Button
+                        variant="outlined"
+                        component="a"
+                        href={permalink}
+                        target="_blank"
+                        startIcon={<i className="pi pi-eye"></i>}
+                      >
+                        Vedi Prodotto
+                      </Button>
+                    );
+                  })()}
+                </>
+              )}
+
+              {prodotto?.id && prodotto.status === 'trash' ? (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  startIcon={<i className="pi pi-save"></i>}
+                  onClick={onFormSubmit}
+                >
+                  Ripristina Prodotto
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  startIcon={<i className="pi pi-save"></i>}
+                  onClick={onFormSubmit}
+                >
+                  {prodotto?.status === 'trash' ? 'Ripristina Prodotto' : 'Salva Prodotto'}
+                </Button>
+              )}
+            </>
+          )}
+        </Box>
+      </Box>
+
+      <Paper sx={{ px: 2, mb: 4, py: 1 }}>
+        <form onSubmit={onFormSubmit} noValidate style={{ width: '100%' }}>
+          {errors.length > 0 && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              <ul>
+                {errors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </Alert>
+          )}
+
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              {prodotto?.id && (
+                <>
+                  <Box display="flex" flexWrap="wrap" gap={1.5} mb={1}>
+                    <Chip
+                      icon={<Iconify icon="solar:calendar-add-bold" width={18} />}
+                      label={`Pubblicato: ${formatDateTime(prodotto.dateCreated)}`}
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                    />
+                    <Chip
+                      icon={<Iconify icon="solar:pen-bold" width={18} />}
+                      label={`Modificato: ${formatDateTime(prodotto.dateModified)}`}
+                      size="small"
+                      variant="outlined"
+                      color="default"
+                    />
+                  </Box>
+
+                  <Box display="flex" flexWrap="wrap" gap={1.5} mb={3} mt={2}>
+                    {/* Stock Status */}
+                    {prodotto.stockStatus === 'instock' && (
+                      <Chip
+                        icon={<Iconify icon="solar:check-circle-bold" width={18} />}
+                        label="Stock"
+                        size="small"
+                        color="success"
+                      />
+                    )}
+                    {prodotto.stockStatus === 'onbackorder' && (
+                      <Chip
+                        icon={<Iconify icon="solar:clock-circle-bold" width={18} />}
+                        label="Ordini arretrati"
+                        size="small"
+                        color="warning"
+                      />
+                    )}
+                    {prodotto.stockStatus === 'outofstock' && (
+                      <Chip
+                        icon={<Iconify icon="solar:close-circle-bold" width={18} />}
+                        label="Out of stock"
+                        size="small"
+                        color="error"
+                      />
+                    )}
+
+                    {/* Trash Status */}
+                    {prodotto.status === 'trash' && (
+                      <Chip
+                        icon={<Iconify icon="solar:trash-bin-trash-bold" width={18} />}
+                        label="Prodotto nel cestino"
+                        size="small"
+                        color="warning"
+                      />
+                    )}
+
+                    {/* Sale Status */}
+                    {prodotto.onSale && (
+                      <Chip
+                        icon={<Iconify icon="solar:tag-price-bold" width={18} />}
+                        label="In saldo"
+                        size="small"
+                        color="info"
+                      />
+                    )}
+                  </Box>
+                </>
+              )}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                required
+                label="SKU"
+                id="sku"
+                sx={{ '& .MuiOutlinedInput-root': { borderWidth: 2, borderColor: '#000' } }}
+                {...register('sku')}
+                error={!!formErrors.sku}
+                helperText={formErrors.sku?.message}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                required
+                label="Nome"
+                id="name"
+                {...register('name', { required: 'Il nome è obbligatorio' })}
+                error={!!formErrors.name}
+                helperText={formErrors.name?.message}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel id="type-label">Tipo di prodotto</InputLabel>
+                <Select
+                  labelId="type-label"
+                  id="type"
+                  label="Tipo di prodotto"
+                  defaultValue={prodotto?.type || 'simple'}
+                  {...register('type')}
+                >
+                  {prodottoTipi.map((tipo) => (
+                    <MenuItem key={tipo.value} value={tipo.value}>
+                      {tipo.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Slug"
+                id="slug"
+                placeholder="Lo slug verrà compilato in automatico"
+                {...register('slug')}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel id="status-label">Stato prodotto</InputLabel>
+                <Select
+                  labelId="status-label"
+                  id="status"
+                  defaultValue={prodotto?.status || 'publish'}
+                  label="Stato prodotto"
+                  {...register('status')}
+                >
+                  {prodottoStati.map((stato) => (
+                    <MenuItem key={stato.value} value={stato.value}>
+                      {stato.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Classe di spedizione"
+                id="shippingClass"
+                {...register('shippingClass')}
+              />
+            </Grid>
+
+            {/* <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel id="tags-label">Tags</InputLabel>
+                <Select
+                  labelId="tags-label"
+                  id="tags_id"
+                  label="Tags"
+                  multiple
+                  defaultValue={prodotto?.tags_id?.map((tag) => tag.toString()) || []}
+                  renderValue={(selected: string[]) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value: string) => (
+                        <Chip
+                          key={value}
+                          label={tags?.find((tag) => tag.id.toString() === value)?.name || value}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                  {...register('tags_id')}
+                >
+                  {tags?.map((tag) => (
+                    <MenuItem key={tag.id} value={tag.id.toString()}>
+                      {tag.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid> */}
+
+            <Grid item xs={12} md={6} mt={1}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => setIsCategorieModalOpen(true)}
+                startIcon={<Iconify icon="eva:list-fill" />}
+              >
+                Gestisci Categorie
+              </Button>
+
+              {/* <GenericModal
+                title="Gestione Categorie"
+                open={isCategorieModalOpen}
+                onClose={() => setIsCategorieModalOpen(false)}
+                maxWidth="xs"
+              >
+                <Box sx={{ p: 2 }}>
+                  <FormControl fullWidth>
+                    <CategorieTreeView
+                      categorie={categorie || []}
+                      selectedStates={(() => {
+                        if (!categorie_id) return {};
+                        if (typeof categorie_id === 'object' && !Array.isArray(categorie_id)) {
+                          return categorie_id as unknown as Record<string, CategoryState>;
+                        }
+                        if (Array.isArray(categorie_id)) {
+                          return categorie_id.reduce(
+                            (acc, id) => ({
+                              ...acc,
+                              [id]: { checked: true, partialChecked: false },
+                            }),
+                            {}
+                          );
+                        }
+                        return {};
+                      })()}
+                      onCategorieChange={(newSelected) => {
+                        const validatedSelection = Object.entries(newSelected).reduce(
+                          (acc, [id, state]) => {
+                            if (state.checked || state.partialChecked) {
+                              acc[id] = {
+                                checked: Boolean(state.checked),
+                                partialChecked: Boolean(state.partialChecked),
+                              };
+                            }
+                            return acc;
+                          },
+                          {} as Record<string, CategoryState>
+                        );
+
+                        setValue('categorie_id', validatedSelection);
+                      }}
+                    />
+                  </FormControl>
+                  <Button
+                    sx={{ mt: 2 }}
+                    fullWidth
+                    variant="contained"
+                    onClick={() => setIsCategorieModalOpen(false)}
+                  >
+                    Conferma selezione
+                  </Button>
+                </Box>
+              </GenericModal> */}
+            </Grid>
+
+            {productType === 'simple' && (
+              <Grid item xs={12} mt={0} sx={{ paddingTop: '0px !important' }}>
+                <Accordion defaultExpanded sx={getAccordionStyles('Prezzi')}>
+                  <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                    <Typography>Prezzi</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={2}>
+                        <NumericFormat
+                          customInput={TextField}
+                          fullWidth
+                          thousandSeparator="."
+                          decimalSeparator=","
+                          decimalScale={2}
+                          fixedDecimalScale
+                          value={watch('regularPrice')}
+                          onValueChange={(values) => {
+                            setValue('regularPrice', values.value);
+                          }}
+                          label="Listino"
+                          InputProps={{ endAdornment: '€' }}
+                          {...register('regularPrice')}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={2}>
+                        <NumericFormat
+                          customInput={TextField}
+                          fullWidth
+                          thousandSeparator="."
+                          decimalSeparator=","
+                          decimalScale={2}
+                          fixedDecimalScale
+                          value={watch('salePrice')}
+                          label="Sconto"
+                          InputProps={{ endAdornment: '€' }}
+                          onValueChange={(values) => {
+                            setValue('salePrice', values.value);
+                          }}
+                          {...register('salePrice')}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={2}>
+                        <NumericFormat
+                          customInput={TextField}
+                          fullWidth
+                          thousandSeparator="."
+                          decimalSeparator=","
+                          decimalScale={2}
+                          fixedDecimalScale
+                          value={watch('price')}
+                          label="Vendita"
+                          InputProps={{ endAdornment: '€' }}
+                          disabled
+                          {...register('price')}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={3}>
+                        <DatePicker
+                          label="Data inizio sconto"
+                          format="DD-MM-YYYY"
+                          value={
+                            watch('dateOnSaleFrom')
+                              ? dayjs(watch('dateOnSaleFrom'), 'DD-MM-YYYY')
+                              : null
+                          }
+                          onChange={(data) => {
+                            setValue(
+                              'dateOnSaleFrom',
+                              data ? dayjs(data).format('DD-MM-YYYY') : ''
+                            );
+                          }}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              error: !!formErrors.dateOnSaleFrom,
+                            },
+                            field: {
+                              clearable: true,
+                            },
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={3}>
+                        <DatePicker
+                          format="DD-MM-YYYY"
+                          label="Pianifica sconto a"
+                          value={
+                            watch('dateOnSaleTo')
+                              ? dayjs(watch('dateOnSaleTo'), 'DD-MM-YYYY')
+                              : null
+                          }
+                          onChange={(data) => {
+                            setValue('dateOnSaleTo', data ? dayjs(data).format('DD-MM-YYYY') : '');
+                          }}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              error: !!formErrors.dateOnSaleTo,
+                              helperText: formErrors.dateOnSaleTo?.message,
+                            },
+                            field: {
+                              clearable: true,
+                            },
+                          }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
+              </Grid>
+            )}
+
+            {/* <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
+              <Accordion defaultExpanded={true} sx={getAccordionStyles('Immagini')}>
+                <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                  <Typography>Immagini</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <Typography gutterBottom>
+                        Nomi immagini separati da <b>","</b>
+                      </Typography>
+                      <TextField
+                        disabled
+                        fullWidth
+                        placeholder="example.jpg,example2.jpg"
+                        {...register('immagini_nomi_string')}
+                      />
+                    </Grid>
+
+                    {prodotto?.immagini && prodotto?.immagini?.length > 0 && (
+                      <Grid item xs={12}>
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <Box display="flex" flexWrap="wrap" gap={2} mb={3}>
+                            <SortableContext items={watch('immagini_nomi') || []}>
+                              {prodotto?.immagini.map((immagine, index) => (
+                                <SortableImage
+                                  key={immagine.src}
+                                  immagine={immagine}
+                                  index={index}
+                                  onDelete={handleProdottoImmagineRimuovi}
+                                />
+                              ))}
+                            </SortableContext>
+                          </Box>
+                        </DndContext>
+                      </Grid>
+                    )}
+
+                    <Grid item xs={12}>
+                      <Button
+                        variant="contained"
+                        onClick={() => setIsUploadModalOpen(true)}
+                        startIcon={<Iconify icon="eva:cloud-upload-fill" />}
+                      >
+                        Carica immagini
+                      </Button>
+
+                      {selectedFiles.length > 0 && (
+                        <Box mt={2}>
+                          <Typography>File selezionati:</Typography>
+                          <ul>
+                            {selectedFiles.map((file, index) => (
+                              <li key={index}>{file.name}</li>
+                            ))}
+                          </ul>
+                        </Box>
+                      )}
+
+                      <UploadModal
+                        open={isUploadModalOpen}
+                        onClose={() => {
+                          setIsUploadModalOpen(false);
+                          setSelectedFiles([]);
+                          setSelectedExistingFiles([]);
+                        }}
+                        selectedFiles={selectedFiles}
+                        selectedExistingFiles={selectedExistingFiles}
+                        onSelectedFilesChange={setSelectedFiles}
+                        onSelectedExistingFilesChange={setSelectedExistingFiles}
+                        onConfirm={handleUploadModalConfirm}
+                        isLoading={isImmaginiLoading}
+                        isUploadLoading={isUploadImmaginiLoading}
+                      />
+                    </Grid>
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+            </Grid> */}
+
+            {STOCK_ENABLED === '1' && (
+              <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
+                <Accordion sx={getAccordionStyles('Magazzino')} defaultExpanded={true}>
+                  <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                    <Typography>Magazzino</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Grid container spacing={3}>
+                      {productType === 'simple' && (
+                        <Grid item xs={12} md={2}>
+                          <Typography gutterBottom>Gestione magazzino</Typography>
+                          <Switch
+                            {...register('manageStock')}
+                            defaultChecked={prodotto?.manageStock || false}
+                          />
+                        </Grid>
+                      )}
+
+                      {productType === 'simple' && manageStock && (
+                        <Grid item xs={12} md={2}>
+                          <TextField
+                            fullWidth
+                            label="Quantità in magazzino"
+                            type="number"
+                            {...register('stockQuantity')}
+                          />
+                        </Grid>
+                      )}
+
+                      {!manageStock && (
+                        <Grid item xs={12} md={2}>
+                          <FormControl fullWidth>
+                            <InputLabel id="stock-status-label">Stato Stock</InputLabel>
+                            <Select
+                              labelId="stock-status-label"
+                              id="stockStatus"
+                              label="Stato Stock"
+                              defaultValue={prodotto?.stockStatus || 'instock'}
+                              {...register('stockStatus')}
+                            >
+                              {stockStati.map((stato) => (
+                                <MenuItem key={stato.value} value={stato.value}>
+                                  {stato.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                      )}
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
+              </Grid>
+            )}
+
+            {/* <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
+              <Accordion sx={getAccordionStyles('SEO')} defaultExpanded={true}>
+                <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                  <Typography>SEO</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <TextField fullWidth label="Meta title" {...register('meta_title')} />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Meta description (max 155-160 caratteri)"
+                        {...register('meta_description')}
+                      />
+                    </Grid>
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+            </Grid> */}
+
+            <Grid item xs={12} pt={0}>
+              <Typography variant="subtitle1" gutterBottom>
+                Descrizione Breve
+              </Typography>
+              <Editor
+                apiKey="fjpuvxdvvk5cjofpllcst021237wbuo6hls9sibgghcqszuc"
+                value={shortDescription}
+                onEditorChange={(content: any) => setShortDescription(content)}
+                init={{
+                  height: 300,
+                  menubar: false,
+                  plugins: [
+                    'advlist',
+                    'autolink',
+                    'lists',
+                    'link',
+                    'image',
+                    'charmap',
+                    'preview',
+                    'anchor',
+                    'searchreplace',
+                    'visualblocks',
+                    'code',
+                    'fullscreen',
+                    'insertdatetime',
+                    'media',
+                    'table',
+                    'help',
+                    'wordcount',
+                  ],
+                  toolbar:
+                    'undo redo | blocks | ' +
+                    'bold italic forecolor | alignleft aligncenter ' +
+                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                    'removeformat | table | help',
+                  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" gutterBottom>
+                Descrizione completa
+              </Typography>
+              <Editor
+                apiKey="fjpuvxdvvk5cjofpllcst021237wbuo6hls9sibgghcqszuc"
+                value={fullDescription}
+                onEditorChange={(content: any) => setFullDescription(content)}
+                init={{
+                  height: 500,
+                  menubar: true,
+                  plugins: [
+                    'advlist',
+                    'autolink',
+                    'lists',
+                    'link',
+                    'image',
+                    'charmap',
+                    'preview',
+                    'anchor',
+                    'searchreplace',
+                    'visualblocks',
+                    'code',
+                    'fullscreen',
+                    'insertdatetime',
+                    'media',
+                    'table',
+                    'help',
+                    'wordcount',
+                  ],
+                  toolbar:
+                    'undo redo | blocks | ' +
+                    'bold italic forecolor | alignleft aligncenter ' +
+                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                    'removeformat | table | help',
+                  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Box className="card-header" mb={3}>
+                {/* Resto del contenuto del form */}
+                {prodotto?.id && (
+                  <Accordion sx={getAccordionStyles('Azioni prodotto')}>
+                    <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                      <Typography>Azioni prodotto</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Box display="flex" justifyContent="flex-start" py={3}>
+                        <Box>
+                          {prodotto.id && prodotto.status === 'trash' && (
+                            <Button
+                              variant="contained"
+                              color="error"
+                              startIcon={<i className="pi pi-trash"></i>}
+                              onClick={() =>
+                                handleDelete && handleDelete(prodotto.id?.toString() || '', true)
+                              }
+                            >
+                              Elimina definitivamente prodotto
+                            </Button>
+                          )}
+
+                          {prodotto.id && prodotto.status !== 'trash' && (
+                            <Button
+                              sx={{ mr: 2 }}
+                              variant="contained"
+                              color="error"
+                              startIcon={<i className="pi pi-trash"></i>}
+                              onClick={() =>
+                                handleDelete && handleDelete(prodotto.id?.toString() || '', false)
+                              }
+                            >
+                              Sposta prodotto nel cestino
+                            </Button>
+                          )}
+                        </Box>
+
+                        <Box>
+                          {prodotto.status !== 'trash' && (
+                            <>
+                              <Button
+                                variant="contained"
+                                color="success"
+                                startIcon={<Iconify icon="vscode-icons:file-type-excel" />}
+                                onClick={() => exportProdotto([prodotto.id?.toString() || ''])}
+                                sx={{ mr: 2 }}
+                              >
+                                Esporta prodotto
+                              </Button>
+                            </>
+                          )}
+                          {prodotto.status === 'trash' && (
+                            <Box display="flex" alignItems="center" pt={2}>
+                              Nessuna azione disponibile
+                            </Box>
+                          )}
+                        </Box>
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+              </Box>
+            </Grid>
+          </Grid>
+        </form>
+      </Paper>
+
+      {prodotto?.id && (
+        <Box mt={4} id="attributi-explode">
+          {/* <Alert severity="warning" sx={{ mb: 3 }}>
+            <Typography align="center">
+              <b>Salvare</b> le modifiche al prodotto prima di gestire Attributi e Variazioni
+            </Typography>
+          </Alert> */}
+
+          {JSON.stringify(prodotto?.attributes)}
+          <Box mt={3}>
+            <ProdottoAttributiDatatable
+              isLoading={loading}
+              prodotto_id={prodotto?.id as number}
+              prodotto={prodotto}
+              prodotto_attributi={prodotto?.attributes || []}
+            />
+          </Box>
+          
+          {prodotto.type === 'variable' ?(
+           
+            <Box mt={3} mb={3}>
+              {productType === 'variable' && (
+                <ProdottoVariazioniDatatable
+                  prodotto_id={prodotto.id}
+                  prodotto={prodotto}
+                />
+              )}
+            </Box>
+          ) : (
+            productType === 'variable' && (
+              <Alert severity="info" sx={{ mt: 5 }}>
+                <Typography align="center">
+                  <b>Non puoi gestire le variazioni</b> perché non sono presenti Attributi che usano
+                  le Variazioni
+                </Typography>
+              </Alert>
+            )
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+}
