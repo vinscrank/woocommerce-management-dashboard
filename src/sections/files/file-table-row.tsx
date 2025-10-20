@@ -9,22 +9,27 @@ import {
   Popover,
   TextField,
   Button,
+  Typography,
 } from '@mui/material';
 import { useState, useCallback } from 'react';
 import { Iconify } from 'src/components/iconify';
 import { useDeleteFile } from 'src/hooks/useDeleteFile';
 import { useRenameFile } from 'src/hooks/useRenameFile';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
-import { useSaveFileName } from 'src/hooks/useSaveFileName';;
+import { useSaveFileName } from 'src/hooks/useSaveFileName';
+import { Media } from 'src/types/File';
+import { formatDateTime } from 'src/hooks/use-format-date';
+import { useDevUrl } from 'src/hooks/useDevUrl';
 
 type FileTableRowProps = {
-  row: File;
+  row: Media;
 };
 
 export function FileTableRow({ row }: FileTableRowProps) {
   const { mutate: deleteFile, isPending: isDeleting } = useDeleteFile();
   const { mutate: renameFile, isPending: isRenaming } = useRenameFile();
   const { mutate: saveFileName, isPending: isSaving } = useSaveFileName();
+  const { convertUrl } = useDevUrl();
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const [openRenameModal, setOpenRenameModal] = useState(false);
   const [newName, setNewName] = useState('');
@@ -40,12 +45,12 @@ export function FileTableRow({ row }: FileTableRowProps) {
   const handleDelete = () => {
     handleClosePopover();
     if (confirm('Sei sicuro di voler eliminare questo file?')) {
-      deleteFile(row.name);
+      deleteFile(row.id as number);
     }
   };
 
   const handleCopyName = () => {
-    navigator.clipboard.writeText(row.name);
+    navigator.clipboard.writeText(row.slug!);
   };
 
   const handleOpenRenameModal = () => {
@@ -63,7 +68,7 @@ export function FileTableRow({ row }: FileTableRowProps) {
     if (newName && newName !== row.name) {
       if (confirm('Vuoi rinominare il file?')) {
         saveFileName(
-          { filename: row.name, newFilename: newName },
+          { filename: row.name!, newFilename: newName },
           {
             onSuccess: () => {
               handleCloseRenameModal();
@@ -78,21 +83,20 @@ export function FileTableRow({ row }: FileTableRowProps) {
     <>
       <TableRow hover>
         <TableCell>
-          <IconButton onClick={handleCopyName} size="small" sx={{ ml: 1 }}>
+          {/* <IconButton onClick={handleCopyName} size="small" sx={{ ml: 1 }}>
             <Iconify icon="solar:copy-bold" width={20} />
-          </IconButton>
-
-          {row.name}
+          </IconButton> */}
+          <Typography variant="body2">{row.slug}</Typography>
         </TableCell>
-        <TableCell>{(row.size / 1024).toFixed(2)} KB</TableCell>
-      
-        {/* <TableCell>
-                    {row.lastModified}
-                </TableCell> */}
+
+        <TableCell>{row.mimeType}</TableCell>
+        <TableCell>{row.mediaDetails?.filesize} KB</TableCell>
+
+        <TableCell>{formatDateTime(row.createdAt)}</TableCell>
         <TableCell>
           <img
-            src={`${import.meta.env.VITE_GEST_URL}/front/${row.name}`}
-            alt={row.name}
+            src={convertUrl(row.sourceUrl)}
+            alt={row.slug}
             style={{ maxWidth: '70px', height: 'auto' }}
           />
         </TableCell>
@@ -125,10 +129,10 @@ export function FileTableRow({ row }: FileTableRowProps) {
             },
           }}
         >
-          <MenuItem onClick={handleOpenRenameModal}>
+          {/* <MenuItem onClick={handleOpenRenameModal}>
             <Iconify icon="solar:pen-bold" />
             Rinomina
-          </MenuItem>
+          </MenuItem> */}
 
           <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
             {isDeleting ? (

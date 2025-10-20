@@ -26,7 +26,6 @@ import { Iconify } from 'src/components/iconify';
 import { InfoLabel } from 'src/components/InfoLabel';
 import { formatDateTime } from 'src/hooks/use-format-date';
 import { useGetCategorieConFiglie } from 'src/hooks/useGetCategorieConFiglie';
-import { useProdottoImmagini } from 'src/hooks/useProdottoImmagini';
 import { usePostProdotto } from 'src/hooks/usePostProdotto';
 import { usePutProdotto } from 'src/hooks/usePutProdotto';
 import { useDeleteProdotto } from 'src/hooks/useDeleteProdotto';
@@ -41,7 +40,7 @@ import { STOCK_ENABLED } from 'src/utils/const';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { NumericFormat } from 'react-number-format';
 import { useGetProdotto } from 'src/hooks/useGetProdotto';
-import { File as FileType } from 'src/types/File';
+import { Media } from 'src/types/File';
 import {
   DndContext,
   closestCenter,
@@ -57,12 +56,12 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useUploadProdottoImmagini } from 'src/hooks/useUploadProdottoImmagini';
 import { SortableImage } from 'src/components/SortableImage/SortableImage';
 import { useExportProdotti } from 'src/hooks/useExportProdotti';
 import { Editor } from '@tinymce/tinymce-react';
 import { useGetFiles } from 'src/hooks/useGetFiles';
 import { UploadModal } from 'src/components/upload-modal/UploadModal';
+import { useDevUrl } from 'src/hooks/useDevUrl';
 
 type ProdottoFormProps = {
   prodotto: Prodotto | null;
@@ -95,6 +94,7 @@ export function ProdottoForm({
       type: prodotto?.type,
       status: prodotto?.status,
       stockStatus: prodotto?.stockStatus,
+      catalogVisibility: prodotto?.catalogVisibility || 'visible',
       onSale: prodotto?.onSale || false,
       slug: prodotto?.slug || '',
       shippingClass: prodotto?.shippingClass || '',
@@ -150,6 +150,7 @@ export function ProdottoForm({
   const productType = watch('type');
   const manageStock = watch('manageStock');
 
+  const { convertUrl } = useDevUrl();
   const prodottoTipi = [
     { name: 'Variabile', value: 'variable' },
     { name: 'Semplice', value: 'simple' },
@@ -167,11 +168,15 @@ export function ProdottoForm({
     { name: 'Permette ordini arretrati', value: 'onbackorder' },
   ];
 
+  const catalogVisibilityOptions = [
+    { name: 'Visibile ovunque', value: 'visible' },
+    { name: 'Solo nel catalogo', value: 'catalog' },
+    { name: 'Solo nei risultati di ricerca', value: 'search' },
+    { name: 'Nascosto', value: 'hidden' },
+  ];
+
   // const { data: categorie } = useGetCategorieConFiglie();
   // const { data: tags, isFetching, isRefetching } = useGetTags();
-  // const { rimuoviImmagine, isLoading: isImmaginiLoading } = useProdottoImmagini(
-  //   prodotto?.id as number
-  // );
   const { mutate: storeProdotto, isPending: isStoreLoading } = usePostProdotto();
   const { mutate: updateProdotto, isPending: isUpdateLoading } = usePutProdotto(
     prodotto?.id as number
@@ -179,14 +184,11 @@ export function ProdottoForm({
   const { mutate: deleteProdotto, isPending: isDeleteLoading } = useDeleteProdotto(
     prodotto?.id as number
   );
-  const { mutate: uploadProdottoImmagini, isPending: isUploadImmaginiLoading } =
-    useUploadProdottoImmagini(prodotto?.id as number);
 
   const { mutate: exportProdotto, isPending: isExportLoading } = useExportProdotti();
   // Gestione upload immagini
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
-  const [allFiles, setAllFiles] = useState<File[]>([]);
-  const [selectedExistingFiles, setSelectedExistingFiles] = useState<FileType[]>([]);
+  const [selectedExistingFiles, setSelectedExistingFiles] = useState<Media[]>([]);
 
   // Aggiungi questi stati per gestire i valori dell'editor
   const [shortDescription, setShortDescription] = useState(prodotto?.shortDescription || '');
@@ -276,42 +278,41 @@ export function ProdottoForm({
     };
   };
 
-  // Funzione per gestire l'upload delle immagini
-  const handleProdottoImmaginiUpload = async () => {
-    // Separiamo i file esistenti (con id) dai file nuovi (senza id)
-    const existingFiles = selectedFiles.filter((file) => file.id);
-    const newFiles = selectedFiles.filter((file) => !file.id);
+  //Funzione per rimuovere un'immagine
+  const handleProdottoImmagineRimuovi = async (immagine: any) => {
+    // Rimuovi l'immagine dall'array images del prodotto
+    const currentImages = prodotto?.images || [];
+    const updatedImages = currentImages.filter((img) => img.id !== immagine.id);
 
-    // Per i file esistenti, prendiamo solo i nomi e li concateniamo
-    if (existingFiles.length > 0) {
-      const existingFileNames = existingFiles.map((file) => file.name).join(',');
+    // Aggiorna il campo images nel form
+    setValue('images', updatedImages as any);
 
-      // Aggiorniamo il campo immagini_nomi_string con i nomi esistenti
-      // const currentNames = watch('immagini_nomi_string') || '';
-      // const updatedNames = currentNames
-      //   ? `${currentNames},${existingFileNames}`
-      //   : existingFileNames;
+    // Salva automaticamente il prodotto per aggiornare le immagini
+    if (prodotto?.id) {
+      const formData = watch(); // Ottieni tutti i dati del form
 
-      // setValue('immagini_nomi_string', updatedNames);
+      // Assicurati che le immagini aggiornate siano nel formData
+      formData.images = updatedImages;
+
+      // Pulisci i campi vuoti prima di inviare (risolve errore dimensions)
+      const cleanedFormData = cleanEmptyFields(formData);
+
+      updateProdotto(
+        { id: prodotto.id.toString(), data: cleanedFormData },
+        {
+          onSuccess: () => {
+            if (onSync) onSync();
+          },
+        }
+      );
     }
-
-    // I file nuovi verranno gestiti normalmente nel submit del form
-    setAllFiles([...newFiles]);
   };
-
-  // Funzione per rimuovere un'immagine
-  // const handleProdottoImmagineRimuovi = async (immagine: any) => {
-  //   if (prodotto?.id) {
-  //     await rimuoviImmagine(immagine.id);
-  //     if (onSync) onSync();
-  //   }
-  // };
 
   // Effetto per caricare le immagini quando vengono selezionate
   useEffect(() => {
     if (selectedFiles.length > 0 && prodotto?.id) {
-      // Opzionalmente, puoi caricare automaticamente le immagini quando vengono selezionate
-      // handleProdottoImmaginiUpload();
+      // Le immagini vengono gestite tramite handleUploadModalConfirm
+      // quando l'utente conferma la selezione nel modal
     }
   }, [selectedFiles, prodotto?.id]);
   //const categorie_id = watch('categorie_id');
@@ -326,19 +327,20 @@ export function ProdottoForm({
   };
 
   const resetAllFiles = () => {
-    setAllFiles([]);
     setSelectedFiles([]);
     setSelectedExistingFiles([]);
   };
 
   const salvaProdotto = async (formData: any) => {
+    // Le immagini sono già state preparate e aggiunte al formData
+    // tramite setValue('images', ...) nella funzione handleUploadModalConfirm
+
     if (prodotto?.id) {
       updateProdotto(
         { id: prodotto.id.toString(), data: formData },
         {
           onSuccess: () => {
-            handleProdottoImmaginiUpload();
-            upladingFiles(prodotto);
+            resetAllFiles();
             if (onSync) onSync();
           },
         }
@@ -346,24 +348,43 @@ export function ProdottoForm({
     } else {
       storeProdotto(formData, {
         onSuccess: async (prodotto: Prodotto) => {
-          handleProdottoImmaginiUpload();
-          upladingFiles(prodotto);
+          resetAllFiles();
           if (onSync) onSync();
         },
       });
     }
   };
 
-  const upladingFiles = async (prodotto: Prodotto) => {
-    await handleProdottoImmaginiUpload();
-    if (allFiles.length > 0) {
-      uploadProdottoImmagini({
-        prodotto_id: prodotto?.id?.toString() || '',
-        prodotto_immagine_principale: allFiles[0] as any,
-        prodotto_immagini: allFiles.slice(0) as any[],
-      });
-    }
-    resetAllFiles();
+  // Funzione per pulire i campi vuoti dall'oggetto
+  const cleanEmptyFields = (obj: any): any => {
+    const cleaned: any = {};
+
+    Object.keys(obj).forEach((key) => {
+      let value = obj[key];
+
+      // Se è una stringa, fai trim
+      if (typeof value === 'string') {
+        value = value.trim();
+      }
+
+      // Salta i valori null, undefined o stringhe vuote (anche dopo trim)
+      if (value === null || value === undefined || value === '') {
+        return;
+      }
+
+      // Se è un oggetto (come dimensions), puliscilo ricorsivamente
+      if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+        const cleanedNested = cleanEmptyFields(value);
+        // Aggiungi solo se l'oggetto pulito non è vuoto
+        if (Object.keys(cleanedNested).length > 0) {
+          cleaned[key] = cleanedNested;
+        }
+      } else {
+        cleaned[key] = value;
+      }
+    });
+
+    return cleaned;
   };
 
   // Gestione del submit con verifica sconto
@@ -400,8 +421,12 @@ export function ProdottoForm({
         ? dayjs(data.dateOnSaleTo, 'DD-MM-YYYY').format('YYYY-MM-DDTHH:mm:ss')
         : undefined,
     };
-    console.log(formData);
-    salvaProdotto(formData);
+
+    // Pulisci i campi vuoti prima di inviare
+    const cleanedFormData = cleanEmptyFields(formData);
+
+    console.log('Form data puliti:', cleanedFormData);
+    salvaProdotto(cleanedFormData);
   };
 
   // Aggiungi questa funzione per prevenire il comportamento predefinito del form
@@ -417,37 +442,94 @@ export function ProdottoForm({
     })
   );
 
-  // const handleDragEnd = (event: any) => {
-  //   const { active, over } = event;
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
 
-  //   if (active.id !== over.id) {
-  //     const oldIndex = prodotto?.immagini.findIndex((img) => img.src === active.id);
-  //     const newIndex = prodotto?.immagini.findIndex((img) => img.src === over.id);
+    if (active.id !== over.id) {
+      const currentImages = prodotto?.images || [];
+      const oldIndex = currentImages.findIndex((img) => img.src === active.id);
+      const newIndex = currentImages.findIndex((img) => img.src === over.id);
 
-  //     if (oldIndex !== undefined && newIndex !== undefined && prodotto?.immagini) {
-  //       // Crea un nuovo array di immagini con l'ordine aggiornato
-  //       const newImmagini = arrayMove(prodotto.immagini, oldIndex, newIndex);
-  //       const newImmaginiNomi = newImmagini.map((img) => img.src);
-  //       // Aggiorna il form e il prodotto
-  //       setValue('immagini_nomi', newImmaginiNomi);
-  //       setValue('immagini_nomi_string', newImmaginiNomi.join(','));
+      if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== -1 && newIndex !== -1) {
+        // Crea un nuovo array di immagini con l'ordine aggiornato usando arrayMove
+        const reorderedImages = arrayMove(currentImages, oldIndex, newIndex);
 
-  //       // Forza l'aggiornamento del componente aggiornando l'oggetto prodotto
-  //       if (prodotto) {
-  //         prodotto.immagini = [...newImmagini];
-  //         prodotto.immagini_nomi = [...newImmaginiNomi];
-  //       }
-  //     }
-  //   }
-  // };
+        // Aggiorna il campo images nel form
+        setValue('images', reorderedImages as any);
+
+        // Salva automaticamente il prodotto per aggiornare l'ordine delle immagini
+        if (prodotto?.id) {
+          const formData = watch(); // Ottieni tutti i dati del form
+          const cleanedFormData = cleanEmptyFields(formData);
+
+          updateProdotto(
+            { id: prodotto.id.toString(), data: cleanedFormData },
+            {
+              onSuccess: () => {
+                if (onSync) onSync();
+              },
+            }
+          );
+        }
+      }
+    }
+  };
 
   // Aggiungi questo useEffect per gestire l'importazione automatica
 
   //const { data: existingFiles, isFetching: isFetchingFiles } = useGetFiles();
 
   const handleUploadModalConfirm = async () => {
-    await handleProdottoImmaginiUpload();
-    setIsUploadModalOpen(false);
+    // Prepara le immagini per l'API
+    // Combina le immagini esistenti del prodotto con le nuove selezionate
+    const existingImages = prodotto?.images || [];
+
+    // Prepara le nuove immagini selezionate nel formato corretto
+    const newImagesForApi = selectedFiles.map((file, index) => ({
+      id: file.id, // ID dell'immagine nella libreria media
+      name: file.slug || file.name,
+      src: file.sourceUrl || file.src,
+      alt: file.alt || file.altText || '',
+    }));
+
+    // Combina immagini esistenti con le nuove
+    // Rimuovi eventuali duplicati basandosi sull'id
+    const existingIds = new Set(existingImages.map((img) => img.id));
+    const filteredNewImages = newImagesForApi.filter((img) => !existingIds.has(img.id));
+    const combinedImages = [...existingImages, ...filteredNewImages];
+
+    // Aggiorna il campo images del form
+    setValue('images', combinedImages as any);
+
+    // Salva immediatamente il prodotto con le nuove immagini
+    if (prodotto?.id) {
+      const formData = watch(); // Ottieni tutti i dati del form
+
+      // Assicurati che le immagini aggiornate siano nel formData
+      formData.images = combinedImages;
+
+      // Pulisci i campi vuoti prima di inviare
+      const cleanedFormData = cleanEmptyFields(formData);
+
+      updateProdotto(
+        { id: prodotto.id.toString(), data: cleanedFormData },
+        {
+          onSuccess: () => {
+            if (onSync) onSync();
+            setIsUploadModalOpen(false);
+            setSelectedFiles([]); // Reset dei file selezionati
+          },
+          onError: () => {
+            // Mantieni la modale aperta in caso di errore
+            console.error('Errore durante il salvataggio delle immagini');
+          },
+        }
+      );
+    } else {
+      // Se non c'è un prodotto esistente, chiudi solo la modale
+      setIsUploadModalOpen(false);
+      setSelectedFiles([]);
+    }
   };
 
   return (
@@ -473,11 +555,7 @@ export function ProdottoForm({
         </Typography>
 
         <Box display="flex" gap={2}>
-          {loading ||
-          isStoreLoading ||
-          isUpdateLoading ||
-          isDeleteLoading ||
-          isUploadImmaginiLoading ? (
+          {loading || isStoreLoading || isUpdateLoading || isDeleteLoading ? (
             <Box display="flex" alignItems="center">
               <Typography variant="body2" mr={1}>
                 Aggiornamento prodotto
@@ -690,6 +768,25 @@ export function ProdottoForm({
                   {prodottoStati.map((stato) => (
                     <MenuItem key={stato.value} value={stato.value}>
                       {stato.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel id="catalog-visibility-label">Visibilità catalogo</InputLabel>
+                <Select
+                  labelId="catalog-visibility-label"
+                  id="catalogVisibility"
+                  defaultValue={prodotto?.catalogVisibility || 'visible'}
+                  label="Visibilità catalogo"
+                  {...register('catalogVisibility')}
+                >
+                  {catalogVisibilityOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.name}
                     </MenuItem>
                   ))}
                 </Select>
@@ -918,26 +1015,14 @@ export function ProdottoForm({
               </Grid>
             )}
 
-            {/* <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
+            <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
               <Accordion defaultExpanded={true} sx={getAccordionStyles('Immagini')}>
                 <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
                   <Typography>Immagini</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
                   <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <Typography gutterBottom>
-                        Nomi immagini separati da <b>","</b>
-                      </Typography>
-                      <TextField
-                        disabled
-                        fullWidth
-                        placeholder="example.jpg,example2.jpg"
-                        {...register('immagini_nomi_string')}
-                      />
-                    </Grid>
-
-                    {prodotto?.immagini && prodotto?.immagini?.length > 0 && (
+                    {prodotto?.images && prodotto?.images?.length > 0 && (
                       <Grid item xs={12}>
                         <DndContext
                           sensors={sensors}
@@ -945,8 +1030,14 @@ export function ProdottoForm({
                           onDragEnd={handleDragEnd}
                         >
                           <Box display="flex" flexWrap="wrap" gap={2} mb={3}>
-                            <SortableContext items={watch('immagini_nomi') || []}>
-                              {prodotto?.immagini.map((immagine, index) => (
+                            <SortableContext
+                              items={
+                                prodotto?.images
+                                  ?.map((img) => img.src || '')
+                                  .filter((src) => src) || []
+                              }
+                            >
+                              {prodotto?.images?.map((immagine, index) => (
                                 <SortableImage
                                   key={immagine.src}
                                   immagine={immagine}
@@ -961,24 +1052,55 @@ export function ProdottoForm({
                     )}
 
                     <Grid item xs={12}>
-                      <Button
-                        variant="contained"
-                        onClick={() => setIsUploadModalOpen(true)}
-                        startIcon={<Iconify icon="eva:cloud-upload-fill" />}
-                      >
-                        Carica immagini
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Button
+                          variant="contained"
+                          onClick={() => setIsUploadModalOpen(true)}
+                          startIcon={<Iconify icon="eva:cloud-upload-fill" />}
+                          sx={{
+                            bgcolor: selectedFiles.length > 0 ? 'success.main' : 'primary.main',
+                            '&:hover': {
+                              bgcolor: selectedFiles.length > 0 ? 'success.dark' : 'primary.dark',
+                            },
+                          }}
+                        >
+                          Carica immagini
+                        </Button>
 
-                      {selectedFiles.length > 0 && (
-                        <Box mt={2}>
-                          <Typography>File selezionati:</Typography>
-                          <ul>
-                            {selectedFiles.map((file, index) => (
-                              <li key={index}>{file.name}</li>
-                            ))}
-                          </ul>
-                        </Box>
-                      )}
+                        {selectedFiles.length > 0 && (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1.5,
+                              bgcolor: 'success.lighter',
+                              px: 2.5,
+                              py: 1.5,
+                              borderRadius: 2,
+                              border: '2px solid',
+                              borderColor: 'success.main',
+                              boxShadow: '0 2px 8px rgba(0,200,83,0.15)',
+                            }}
+                          >
+                            <Iconify
+                              icon="eva:checkmark-circle-2-fill"
+                              color="success.main"
+                              width={24}
+                            />
+                            <Typography variant="subtitle2" color="success.dark" fontWeight={600}>
+                              {selectedFiles.length}{' '}
+                              {selectedFiles.length === 1 ? 'immagine' : 'immagini'} pronta per il
+                              caricamento
+                            </Typography>
+                            <Chip
+                              label={selectedFiles.length}
+                              color="success"
+                              size="small"
+                              sx={{ fontWeight: 700, fontSize: '0.85rem' }}
+                            />
+                          </Box>
+                        )}
+                      </Box>
 
                       <UploadModal
                         open={isUploadModalOpen}
@@ -992,14 +1114,13 @@ export function ProdottoForm({
                         onSelectedFilesChange={setSelectedFiles}
                         onSelectedExistingFilesChange={setSelectedExistingFiles}
                         onConfirm={handleUploadModalConfirm}
-                        isLoading={isImmaginiLoading}
-                        isUploadLoading={isUploadImmaginiLoading}
+                        isLoading={isUpdateLoading}
                       />
                     </Grid>
                   </Grid>
                 </AccordionDetails>
               </Accordion>
-            </Grid> */}
+            </Grid>
 
             {STOCK_ENABLED === '1' && (
               <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
@@ -1245,15 +1366,11 @@ export function ProdottoForm({
               prodotto_attributi={prodotto?.attributes || []}
             />
           </Box>
-          
-          {prodotto.type === 'variable' ?(
-           
+
+          {prodotto.type === 'variable' ? (
             <Box mt={3} mb={3}>
               {productType === 'variable' && (
-                <ProdottoVariazioniDatatable
-                  prodotto_id={prodotto.id}
-                  prodotto={prodotto}
-                />
+                <ProdottoVariazioniDatatable prodotto_id={prodotto.id} prodotto={prodotto} />
               )}
             </Box>
           ) : (

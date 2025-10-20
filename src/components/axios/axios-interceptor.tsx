@@ -17,16 +17,10 @@ const AxiosInterceptor = () => {
             response.config.method === 'patch' ||
             response.config.method === 'delete')
         ) {
-          const methodMessages: { [key: string]: string } = {
-            post: 'Elemento creato con successo',
-            put: 'Elemento aggiornato con successo',
-            patch: 'Operazione completata con successo',
-            delete: 'Elemento eliminato con successo',
-          };
+          
 
           const message =
-            response.data?.message ||
-            methodMessages[response.config.method || ''] ||
+            response.data?.message  ||
             'Operazione completata con successo';
 
           showMessage({
@@ -95,8 +89,29 @@ const AxiosInterceptor = () => {
             type: 'error',
           });
         } else {
+          // Prova a estrarre il messaggio anche dagli errori non gestiti sopra
+          let errorMessage = error.message;
+          
+          // Se error.message contiene un JSON, prova a parsarlo per estrarre il campo message
+          if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (typeof error.message === 'string' && error.message.includes('{')) {
+            try {
+              // Estrai il JSON dalla stringa (se presente dopo "HTTP XXX - ")
+              const jsonMatch = error.message.match(/HTTP \d+ - (.+)$/);
+              if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[1]);
+                if (parsed.message) {
+                  errorMessage = parsed.message;
+                }
+              }
+            } catch (e) {
+              // Se il parsing fallisce, usa il messaggio originale
+            }
+          }
+          
           showMessage({
-            text: error.message,
+            text: errorMessage,
             type: 'error',
           });
         }

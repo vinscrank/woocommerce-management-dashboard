@@ -1,24 +1,23 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Box, Button, Typography, Grid, IconButton, CircularProgress, Chip } from '@mui/material';
 import { Iconify } from 'src/components/iconify';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { useGetFiles } from 'src/hooks/useGetFiles';
 import { useDropzone } from 'react-dropzone';
 import { useSnackbar } from 'src/context/SnackbarContext';
-import { useQueryClient } from '@tanstack/react-query';
-import axiosInstance from 'src/utils/axios';
-import { File as FileType } from 'src/types/File';
+import { Media } from 'src/types/File';
+import { useDevUrl } from 'src/hooks/useDevUrl';
+import { useUploadFiles } from 'src/hooks/useUploadFiles';
 
 interface UploadModalProps {
   open: boolean;
   onClose: () => void;
-  selectedFiles: FileType[];
-  selectedExistingFiles: FileType[];
-  onSelectedFilesChange: (files: FileType[]) => void;
-  onSelectedExistingFilesChange: (files: FileType[]) => void;
+  selectedFiles: Media[];
+  selectedExistingFiles: Media[];
+  onSelectedFilesChange: (files: Media[]) => void;
+  onSelectedExistingFilesChange: (files: Media[]) => void;
   onConfirm: () => void | Promise<void>;
   isLoading?: boolean;
-  isUploadLoading?: boolean;
 }
 export function UploadModal({
   open,
@@ -27,16 +26,132 @@ export function UploadModal({
   onSelectedFilesChange, // Callback per aggiornare TUTTI i file
   onConfirm,
   isLoading = false,
-  isUploadLoading = false,
 }: UploadModalProps) {
   const [showExistingFiles, setShowExistingFiles] = useState(true);
-  const { data: existingFiles, isFetching: isFetchingFiles } = useGetFiles() as {
-    data: FileType[] | undefined;
-    isFetching: boolean;
-  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allFiles, setAllFiles] = useState<Media[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+
+  const {
+    data: existingFiles,
+    isFetching: isFetchingFiles,
+    refetch,
+  } = useGetFiles(currentPage, 20);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const queryClient = useQueryClient();
+  const observerTarget = useRef<HTMLDivElement>(null);
   const { showMessage } = useSnackbar();
+  const { convertUrl } = useDevUrl();
+
+  // Reset quando si apre la modale
+  useEffect(() => {
+    if (open) {
+      console.log('Modale aperta - Reset e refetch');
+      setCurrentPage(1);
+      setAllFiles([]);
+      setHasMore(true);
+      // Forza il refetch dei dati quando si apre la modale
+      refetch();
+    }
+  }, [open, refetch]);
+
+  // Accumula i file quando arrivano nuove pagine
+  useEffect(() => {
+    console.log('Effect accumulo file - existingFiles:', existingFiles);
+    console.log('Effect accumulo file - isFetching:', isFetchingFiles);
+
+    if (existingFiles?.items) {
+      console.log('✅ Files ricevuti:', {
+        page: existingFiles.currentPage,
+        requestedPage: currentPage,
+        items: existingFiles.items.length,
+        totalItems: existingFiles.totalItems,
+        totalPages: existingFiles.totalPages,
+      });
+
+      // Verifica che la pagina ricevuta sia quella richiesta (evita race conditions)
+      if (existingFiles.currentPage === currentPage) {
+        if (currentPage === 1) {
+          // Prima pagina: sostituisci sempre
+          setAllFiles(existingFiles.items);
+        } else {
+          // Pagine successive: aggiungi solo se non ci sono già
+          setAllFiles((prev) => {
+            // Evita duplicati
+            const newFiles = existingFiles.items.filter(
+              (newFile) => !prev.some((existingFile) => existingFile.id === newFile.id)
+            );
+            console.log('➕ Aggiunti', newFiles.length, 'nuovi file');
+            return [...prev, ...newFiles];
+          });
+        }
+
+        // Verifica se ci sono altre pagine (controllo rigoroso)
+        const morePages = existingFiles.currentPage < existingFiles.totalPages;
+        console.log(
+          '📖 Altre pagine disponibili?',
+          morePages,
+          `(${existingFiles.currentPage}/${existingFiles.totalPages})`
+        );
+        setHasMore(morePages);
+      } else {
+        console.log('⚠️ Pagina ricevuta diversa da quella richiesta, skip');
+      }
+    } else {
+      console.log('❌ Nessun file ricevuto o items vuoto');
+    }
+  }, [existingFiles, currentPage, isFetchingFiles]);
+
+  // IntersectionObserver per infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        // Verifica più rigorosa per evitare di caricare pagine inesistenti
+        if (
+          first.isIntersecting &&
+          hasMore &&
+          !isFetchingFiles &&
+          existingFiles?.currentPage &&
+          existingFiles?.totalPages &&
+          existingFiles.currentPage < existingFiles.totalPages
+        ) {
+          console.log('📄 Caricamento pagina successiva:', currentPage + 1);
+          setCurrentPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget && hasMore) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, isFetchingFiles, existingFiles, currentPage]);
+
+  const { uploadFiles, isUploading } = useUploadFiles({
+    onSuccess: (uploadedFiles) => {
+      showMessage({
+        text: `${uploadedFiles.length} file caricato/i con successo`,
+        type: 'success',
+      });
+      // Aggiungi i file caricati alla lista dei selezionati
+      onSelectedFilesChange([...selectedFiles, ...uploadedFiles]);
+      // Aggiungi anche alla lista di tutti i file per mostrarli immediatamente
+      setAllFiles((prev) => [...uploadedFiles, ...prev]);
+    },
+    onError: () => {
+      showMessage({
+        text: 'Errore durante il caricamento dei file',
+        type: 'error',
+      });
+    },
+  });
 
   // Configurazione dropzone per la lista dei file selezionati
   const {
@@ -45,48 +160,7 @@ export function UploadModal({
     isDragActive: isListDragActive,
   } = useDropzone({
     onDrop: async (acceptedFiles) => {
-      try {
-        // Upload di ogni file al database - stessa logica di FileView
-        for (const file of acceptedFiles) {
-          const formData = new FormData();
-          formData.append('files_upload[]', file);
-
-          await axiosInstance.post('/file/upload', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-            params: {
-              return_type: 'url',
-            },
-          });
-        }
-
-        // Aggiorna la lista dei file esistenti - stessa logica di FileView
-        queryClient.invalidateQueries({ queryKey: ['files'] });
-
-        showMessage({
-          text: `${acceptedFiles.length} file caricato/i con successo`,
-          type: 'success',
-        });
-
-        // Aggiungi i file alla lista dei selezionati (ora sono nel database)
-        const uploadedFiles = acceptedFiles.map((file) => ({
-          ...file,
-          id: `temp_${Date.now()}_${Math.random()}`, // ID temporaneo
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          lastModified: file.lastModified,
-        })) as any;
-
-        onSelectedFilesChange([...selectedFiles, ...uploadedFiles]);
-      } catch (error) {
-        console.error('Errore durante il caricamento:', error);
-        showMessage({
-          text: 'Errore durante il caricamento dei file',
-          type: 'error',
-        });
-      }
+      await uploadFiles(acceptedFiles);
     },
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
@@ -99,103 +173,19 @@ export function UploadModal({
   const handleFileDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files) {
-      try {
-        const files = Array.from(e.dataTransfer.files);
-
-        // Upload di ogni file al database - stessa logica di FileView
-        for (const file of files) {
-          const formData = new FormData();
-          formData.append('files_upload[]', file);
-
-          await axiosInstance.post('/file/upload', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-            params: {
-              return_type: 'url',
-            },
-          });
-        }
-
-        // Aggiorna la lista dei file esistenti - stessa logica di FileView
-        queryClient.invalidateQueries({ queryKey: ['files'] });
-
-        showMessage({
-          text: `${files.length} file caricato/i con successo nel database`,
-          type: 'success',
-        });
-
-        // Aggiungi i file alla lista dei selezionati (ora sono nel database)
-        const uploadedFiles = files.map((file) => ({
-          ...file,
-          id: `temp_${Date.now()}_${Math.random()}`, // ID temporaneo
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          lastModified: file.lastModified,
-        })) as any;
-
-        onSelectedFilesChange([...selectedFiles, ...uploadedFiles]);
-      } catch (error) {
-        console.error('Errore durante il caricamento:', error);
-        showMessage({
-          text: 'Errore durante il caricamento dei file',
-          type: 'error',
-        });
-      }
+      const files = Array.from(e.dataTransfer.files);
+      await uploadFiles(files);
     }
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      try {
-        const files = Array.from(e.target.files);
-
-        // Upload di ogni file al database - stessa logica di FileView
-        for (const file of files) {
-          const formData = new FormData();
-          formData.append('files_upload[]', file);
-
-          await axiosInstance.post('/file/upload', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-            params: {
-              return_type: 'url',
-            },
-          });
-        }
-
-        // Aggiorna la lista dei file esistenti - stessa logica di FileView
-        queryClient.invalidateQueries({ queryKey: ['files'] });
-
-        showMessage({
-          text: `${files.length} file caricato/i con successo nel database`,
-          type: 'success',
-        });
-
-        // Aggiungi i file alla lista dei selezionati (ora sono nel database)
-        const uploadedFiles = files.map((file) => ({
-          ...file,
-          id: `temp_${Date.now()}_${Math.random()}`, // ID temporaneo
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          lastModified: file.lastModified,
-        })) as any;
-
-        onSelectedFilesChange([...selectedFiles, ...uploadedFiles]);
-      } catch (error) {
-        console.error('Errore durante il caricamento:', error);
-        showMessage({
-          text: 'Errore durante il caricamento dei file',
-          type: 'error',
-        });
-      }
+      const files = Array.from(e.target.files);
+      await uploadFiles(files);
     }
   };
 
-  const handleExistingFileToggle = (file: FileType) => {
+  const handleExistingFileToggle = (file: Media) => {
     const isSelected = selectedFiles.some((f: any) => f.id === file.id);
     if (isSelected) {
       onSelectedFilesChange(selectedFiles.filter((f: any) => f.id !== file.id));
@@ -222,70 +212,120 @@ export function UploadModal({
         },
       }}
     >
-      {/* Sezione file selezionati con posizione fissa - lista unica e dropzone */}
+      {/* Sezione file selezionati con posizione fissa - visualizzazione compatta */}
       {hasSelectedFiles && (
         <Box
           sx={{
             position: 'sticky',
             top: 0,
-            bgcolor: 'background.paper',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            p: 2,
+            bgcolor: 'success.lighter',
+            borderBottom: '2px solid',
+            borderColor: 'success.main',
+            p: 1.5,
             mb: 2,
             zIndex: 1,
             borderRadius: '8px 8px 0 0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            boxShadow: '0 2px 8px rgba(0,200,83,0.1)',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Typography variant="subtitle2" flexGrow={1}>
-              File selezionati ({selectedFiles.length}):
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
+            <Iconify icon="eva:checkmark-circle-2-fill" color="success.main" width={20} />
+            <Typography variant="subtitle2" color="success.dark" flexGrow={1} fontWeight={600}>
+              File Selezionati
             </Typography>
+            <Chip
+              label={`${selectedFiles.length}`}
+              color="success"
+              size="small"
+              sx={{ fontWeight: 600, fontSize: '0.75rem', height: '20px' }}
+            />
           </Box>
 
-          <Box sx={{ maxHeight: '200px', overflow: 'auto' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              overflowX: 'auto',
+              maxHeight: '80px',
+              pb: 0.5,
+              '&::-webkit-scrollbar': {
+                height: '6px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: 'success.main',
+                borderRadius: '3px',
+              },
+            }}
+          >
             {selectedFiles.map((file: any, index: number) => (
-              <Box
-                key={`${file.id || index}-${index}`}
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-                mb={1}
-                sx={{
-                  bgcolor: 'action.hover',
-                  p: 1,
-                  borderRadius: 1,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                }}
-              >
-                <Box display="flex" alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
-                  <Typography
-                    variant="body2"
+              <Box key={`${file.id || index}-${index}`}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    bgcolor: 'background.paper',
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    border: '1px solid',
+                    borderColor: 'success.main',
+                    minWidth: '60px',
+                    width: '60px',
+                    flexShrink: 0,
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                      '& .delete-btn': {
+                        opacity: 1,
+                      },
+                    },
+                  }}
+                >
+                  {/* Bottone Elimina */}
+                  <IconButton
+                    className="delete-btn"
+                    size="small"
+                    onClick={() => removeSelectedFile(file)}
                     sx={{
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      flex: 1,
+                      position: 'absolute',
+                      top: 2,
+                      right: 2,
+                      zIndex: 2,
+                      bgcolor: 'error.main',
+                      color: 'white',
+                      opacity: 0,
+                      transition: 'opacity 0.2s ease',
+                      padding: '2px',
+                      minWidth: '20px',
+                      width: '20px',
+                      height: '20px',
+                      '&:hover': {
+                        bgcolor: 'error.dark',
+                      },
                     }}
                   >
-                    {file.name}
-                  </Typography>
-                  <Chip
-                    label={file.id ? 'Esistente' : 'Nuovo'}
-                    size="small"
-                    color={file.id ? 'secondary' : 'primary'}
-                    sx={{ ml: 1, flexShrink: 0 }}
+                    <Iconify icon="eva:close-fill" width={14} />
+                  </IconButton>
+
+                  {/* Anteprima Immagine */}
+                  <Box
+                    component="img"
+                    src={(() => {
+                      // Se ha sourceUrl o src, è un file esistente dalla media library
+                      if (file.sourceUrl) return convertUrl(file.sourceUrl);
+                      if (file.src) return convertUrl(file.src);
+                      // Se è un File object (nuovo upload), crea URL temporaneo
+                      if (file instanceof File) return URL.createObjectURL(file);
+                      // Fallback
+                      return '';
+                    })()}
+                    alt={file.slug || file.name}
+                    sx={{
+                      width: '100%',
+                      height: '60px',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
                   />
                 </Box>
-                <IconButton
-                  size="small"
-                  onClick={() => removeSelectedFile(file)}
-                  sx={{ ml: 1, flexShrink: 0 }}
-                >
-                  <Iconify icon="eva:close-fill" />
-                </IconButton>
               </Box>
             ))}
           </Box>
@@ -294,7 +334,7 @@ export function UploadModal({
 
       {/* Contenuto scrollabile della modale */}
       <Box sx={{ maxHeight: '60vh', overflow: 'auto' }}>
-        <Box sx={{ mb: 3 }}>
+        {/* <Box sx={{ mb: 3 }}>
           <Button
             variant="outlined"
             onClick={() => setShowExistingFiles(!showExistingFiles)}
@@ -303,15 +343,26 @@ export function UploadModal({
           >
             {showExistingFiles ? 'Nascondi file esistenti' : 'Seleziona da file esistenti'}
           </Button>
-        </Box>
+        </Box> */}
 
         {showExistingFiles && (
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" gutterBottom>
-              File esistenti disponibili:
+              File esistenti disponibili ({existingFiles?.totalItems || 0} totali):
             </Typography>
-            {isFetchingFiles ? (
-              <CircularProgress size={24} />
+            {allFiles.length === 0 && isFetchingFiles ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress size={40} />
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                  Caricamento file in corso...
+                </Typography>
+              </Box>
+            ) : allFiles.length === 0 && !isFetchingFiles ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Nessun file disponibile
+                </Typography>
+              </Box>
             ) : (
               <Box
                 {...getListDropzoneProps()}
@@ -353,7 +404,7 @@ export function UploadModal({
                 )}
 
                 <Grid container spacing={1}>
-                  {existingFiles?.map((file: FileType) => (
+                  {allFiles.map((file: Media) => (
                     <Grid item xs={6} sm={4} md={3} key={file.id}>
                       <Box
                         sx={{
@@ -371,8 +422,8 @@ export function UploadModal({
                         onClick={() => handleExistingFileToggle(file)}
                       >
                         <img
-                          src={`${import.meta.env.VITE_GEST_URL}/front/${file.name}`}
-                          alt={file.name}
+                          src={`${convertUrl(file.sourceUrl)}`}
+                          alt={file.slug}
                           style={{
                             width: '100%',
                             height: '120px',
@@ -391,11 +442,56 @@ export function UploadModal({
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          {file.name}
+                          {file.slug}
                         </Typography>
                       </Box>
                     </Grid>
                   ))}
+
+                  {/* Elemento observer per infinite scroll */}
+                  {hasMore && (
+                    <Grid item xs={12}>
+                      <Box
+                        ref={observerTarget}
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          p: 2,
+                        }}
+                      >
+                        {isFetchingFiles && currentPage > 1 && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CircularProgress size={24} />
+                            <Typography variant="body2" color="text.secondary">
+                              Caricamento altri file...
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    </Grid>
+                  )}
+
+                  {/* Messaggio fine lista */}
+                  {!hasMore && allFiles.length > 0 && (
+                    <Grid item xs={12}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          p: 2,
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ fontStyle: 'italic' }}
+                        >
+                          ✓ Tutti i file sono stati caricati ({allFiles.length} di{' '}
+                          {existingFiles?.totalItems || 0})
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  )}
                 </Grid>
               </Box>
             )}
@@ -461,8 +557,8 @@ export function UploadModal({
         <Button
           variant="contained"
           onClick={onConfirm}
-          disabled={!hasSelectedFiles || isLoading || isUploadLoading}
-          startIcon={isLoading || isUploadLoading ? <CircularProgress size={20} /> : null}
+          disabled={!hasSelectedFiles || isLoading || isUploading}
+          startIcon={isLoading || isUploading ? <CircularProgress size={20} /> : null}
         >
           Conferma upload
         </Button>

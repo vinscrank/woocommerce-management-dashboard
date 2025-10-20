@@ -57,7 +57,7 @@ export function Router() {
         // { path: 'user', element: <UserPage /> },
         { path: 'categorie', element: <CategoriePage /> },
         { path: 'tags', element: <TagsPage /> },
-        // { path: 'files', element: <FilesPage /> },
+         { path: 'files', element: <FilesPage /> },
         { path: 'import-prodotti', element: <ImportProdottiPage /> },
         { path: 'attributi', element: <AttributiPage /> },
         { path: 'seo-config', element: <SeoConfigPage /> },
