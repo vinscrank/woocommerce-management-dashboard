@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import axiosInstance from 'src/utils/axios';
 import { API_BASE_PREFIX } from 'src/utils/const';
 import { Media } from 'src/types/File';
+import { useWorkspace } from 'src/context/WorkspaceContext';
 
 interface UseUploadFilesOptions {
   onSuccess?: (uploadedFiles: Media[]) => void;
@@ -12,8 +13,10 @@ interface UseUploadFilesOptions {
 export function useUploadFiles(options?: UseUploadFilesOptions) {
   const [isUploading, setIsUploading] = useState(false);
   const queryClient = useQueryClient();
-
+  const { ecommerceId } = useWorkspace();
+  
   const uploadFiles = async (files: File[]): Promise<Media[]> => {
+   
     setIsUploading(true);
     try {
       // WordPress API accetta un solo file per volta, quindi facciamo upload multipli in parallelo
@@ -22,7 +25,7 @@ export function useUploadFiles(options?: UseUploadFilesOptions) {
         formData.append('file', file);
 
         const response = await axiosInstance.post<{ success: boolean; data: Media }>(
-          API_BASE_PREFIX + '/media',
+          API_BASE_PREFIX + '/' + ecommerceId + '/media',
           formData,
           {
             headers: {

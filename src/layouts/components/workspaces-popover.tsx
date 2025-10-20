@@ -1,6 +1,6 @@
 import type { ButtonBaseProps } from '@mui/material/ButtonBase';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Popover from '@mui/material/Popover';
@@ -12,6 +12,7 @@ import { varAlpha } from 'src/theme/styles';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { useWorkspace } from 'src/context/WorkspaceContext';
 
 // ----------------------------------------------------------------------
 
@@ -32,9 +33,18 @@ export function WorkspacesPopover({
   isCollapsed,
   ...other
 }: WorkspacesPopoverProps) {
-  const [workspace, setWorkspace] = useState(data[0]);
-
+  const { selectedWorkspaceId, setSelectedWorkspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+
+  // Seleziona automaticamente il primo workspace se non ce n'è uno selezionato
+  useEffect(() => {
+    if (data && data.length > 0 && !selectedWorkspaceId) {
+      setSelectedWorkspaceId(data[0].id);
+    }
+  }, [data, selectedWorkspaceId, setSelectedWorkspaceId]);
+
+  // Trova il workspace corrente dall'ID
+  const selectedWorkspace = data.find((ws) => ws.id === selectedWorkspaceId) || data[0];
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -45,11 +55,11 @@ export function WorkspacesPopover({
   }, []);
 
   const handleChangeWorkspace = useCallback(
-    (newValue: (typeof data)[number]) => {
-      setWorkspace(newValue);
+    (workspaceId: string) => {
+      setSelectedWorkspaceId(workspaceId);
       handleClosePopover();
     },
-    [handleClosePopover]
+    [handleClosePopover, setSelectedWorkspaceId]
   );
 
   const renderAvatar = (alt: string, src: React.ReactNode, href: string) => (
@@ -96,7 +106,7 @@ export function WorkspacesPopover({
           }}
           {...other}
         >
-          {renderAvatar(workspace?.name, workspace?.logo, workspace?.href)}
+          {renderAvatar(selectedWorkspace?.name, selectedWorkspace?.logo, selectedWorkspace?.href)}
 
           <Box
             gap={1}
@@ -105,7 +115,7 @@ export function WorkspacesPopover({
             alignItems="center"
             sx={{ typography: 'body2', fontWeight: 'fontWeightSemiBold' }}
           >
-            {workspace?.name}
+            {selectedWorkspace?.name}
           </Box>
 
           <Iconify width={16} icon="carbon:chevron-sort" sx={{ color: 'text.disabled' }} />
@@ -135,8 +145,8 @@ export function WorkspacesPopover({
           {data.map((option) => (
             <MenuItem
               key={option.id}
-              selected={option.id === workspace?.id}
-              onClick={() => handleChangeWorkspace(option)}
+              selected={option.id === selectedWorkspaceId}
+              onClick={() => handleChangeWorkspace(option.id)}
             >
               {renderAvatar(option.name, option.logo, option.href)}
 
