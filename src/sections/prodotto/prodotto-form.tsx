@@ -25,7 +25,7 @@ import { Prodotto } from 'src/types/Prodotto';
 import { Iconify } from 'src/components/iconify';
 import { InfoLabel } from 'src/components/InfoLabel';
 import { formatDateTime } from 'src/hooks/use-format-date';
-import { useGetCategorieConFiglie } from 'src/hooks/useGetCategorieConFiglie';
+import { useGetCategories } from 'src/hooks/useGetCategorie';
 import { usePostProdotto } from 'src/hooks/usePostProdotto';
 import { usePutProdotto } from 'src/hooks/usePutProdotto';
 import { useDeleteProdotto } from 'src/hooks/useDeleteProdotto';
@@ -36,7 +36,7 @@ import { useGetTags } from 'src/hooks/useGetTags';
 import { ProdottoAttributiDatatable } from './prodotto-attributi-table';
 import { ProdottoVariazioniDatatable } from './prodotto-variazioni-datatable';
 import { STOCK_ENABLED } from 'src/utils/const';
-//import { CategorieTreeView, CategoryState } from 'src/components/CategorieTreeView';
+import { CategorieTreeView, CategoryState } from 'src/components/CategorieTreeView';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { NumericFormat } from 'react-number-format';
 import { useGetProdotto } from 'src/hooks/useGetProdotto';
@@ -62,6 +62,7 @@ import { Editor } from '@tinymce/tinymce-react';
 import { useGetFiles } from 'src/hooks/useGetFiles';
 import { UploadModal } from 'src/components/upload-modal/UploadModal';
 import { useDevUrl } from 'src/hooks/useDevUrl';
+import { Categoria } from 'src/types/Categoria';
 
 type ProdottoFormProps = {
   prodotto: Prodotto | null;
@@ -109,17 +110,13 @@ export function ProdottoForm({
       //meta_description: prodotto?.meta_description || '',
       shortDescription: prodotto?.shortDescription || '',
       description: prodotto?.description || '',
-      //categorie_id: prodotto?.categorie_id || [],
+      categories: prodotto?.categories || [],
       //tags_id: prodotto?.tags_id || [],
-      //immagini_nomi: prodotto?.immagini_nomi || [],
       //deleted: prodotto?.deleted || false,
       id: prodotto?.id || undefined,
       permalink: prodotto?.permalink || '',
       //abilitato: prodotto?.abilitato || true,
-      //prezzo_variazioni_uniforme: prodotto?.prezzo_variazioni_uniforme || true,
-      //immagini_nomi_string: Array.isArray(prodotto?.immagini_nomi)
-      //  ? prodotto?.immagini_nomi.join(',')
-      //  : prodotto?.immagini_nomi || '',
+    
     },
   });
 
@@ -135,13 +132,6 @@ export function ProdottoForm({
           : undefined,
       });
 
-      // Aggiorna manualmente il campo calcolato ( importante perchè non è un campo del database)
-      // setValue(
-      //   'immagini_nomi_string',
-      //   Array.isArray(prodotto?.immagini_nomi)
-      //     ? prodotto.immagini_nomi.join(',')
-      //     : prodotto?.immagini_nomi || ''
-      // );
     }
   }, [prodotto, reset, setValue]);
 
@@ -175,7 +165,45 @@ export function ProdottoForm({
     { name: 'Nascosto', value: 'hidden' },
   ];
 
-  // const { data: categorie } = useGetCategorieConFiglie();
+  const { data: categorie } = useGetCategories();
+
+  // Funzione helper per costruire la gerarchia delle categorie
+  const buildCategoryTree = (categories: Categoria[] | undefined): Categoria[] => {
+    if (!categories) return [];
+
+    const categoryMap = new Map<number, Categoria>();
+    const rootCategories: Categoria[] = [];
+
+    // Prima passata: crea la mappa e inizializza l'array children
+    categories.forEach((cat) => {
+      if (cat.id) {
+        categoryMap.set(cat.id, { ...cat, children: [] });
+      }
+    });
+
+    // Seconda passata: costruisci la gerarchia
+    categoryMap.forEach((cat) => {
+      if (cat.parent && cat.parent !== 0) {
+        // Ha un parent, aggiungilo come child del parent
+        const parentCat = categoryMap.get(cat.parent);
+        if (parentCat && parentCat.children) {
+          parentCat.children.push(cat);
+        } else {
+          // Parent non trovato, mettilo nelle root
+          rootCategories.push(cat);
+        }
+      } else {
+        // Nessun parent, è una categoria root
+        rootCategories.push(cat);
+      }
+    });
+
+    return rootCategories;
+  };
+
+  // Costruisci l'albero gerarchico delle categorie
+  const categorieTree = buildCategoryTree(categorie);
+
   // const { data: tags, isFetching, isRefetching } = useGetTags();
   const { mutate: storeProdotto, isPending: isStoreLoading } = usePostProdotto();
   const { mutate: updateProdotto, isPending: isUpdateLoading } = usePutProdotto(
@@ -422,10 +450,48 @@ export function ProdottoForm({
         : undefined,
     };
 
+    // Trasforma categories da oggetto a array nel formato WooCommerce
+    if (data.categories && typeof data.categories === 'object' && !Array.isArray(data.categories)) {
+      const selectedIds = Object.keys(data.categories).filter((id) => data.categories[id]?.checked);
+      formData.categories = selectedIds
+        .map((id) => {
+          const categoria = categorie?.find((cat) => cat.id?.toString() === id);
+          return categoria
+            ? {
+                id: categoria.id,
+                name: categoria.name,
+                slug: categoria.slug,
+              }
+            : null;
+        })
+        .filter(Boolean);
+    } else if (Array.isArray(data.categories)) {
+      // Se è già un array, assicurati che abbia il formato corretto
+      formData.categories = data.categories
+        .map((cat: any) => {
+          if (typeof cat === 'object' && cat.id && cat.name && cat.slug) {
+            return { id: cat.id, name: cat.name, slug: cat.slug };
+          } else if (typeof cat === 'object' && cat.id) {
+            // Ha solo l'id, trova i dettagli completi
+            const categoria = categorie?.find((c) => c.id === cat.id);
+            return categoria
+              ? { id: categoria.id, name: categoria.name, slug: categoria.slug }
+              : null;
+          } else if (typeof cat === 'number' || typeof cat === 'string') {
+            // È solo un id
+            const categoria = categorie?.find((c) => c.id?.toString() === cat.toString());
+            return categoria
+              ? { id: categoria.id, name: categoria.name, slug: categoria.slug }
+              : null;
+          }
+          return null;
+        })
+        .filter(Boolean);
+    }
+
     // Pulisci i campi vuoti prima di inviare
     const cleanedFormData = cleanEmptyFields(formData);
 
-    console.log('Form data puliti:', cleanedFormData);
     salvaProdotto(cleanedFormData);
   };
 
@@ -842,7 +908,7 @@ export function ProdottoForm({
                 Gestisci Categorie
               </Button>
 
-              {/* <GenericModal
+              <GenericModal
                 title="Gestione Categorie"
                 open={isCategorieModalOpen}
                 onClose={() => setIsCategorieModalOpen(false)}
@@ -851,21 +917,30 @@ export function ProdottoForm({
                 <Box sx={{ p: 2 }}>
                   <FormControl fullWidth>
                     <CategorieTreeView
-                      categorie={categorie || []}
+                      categorie={categorieTree}
                       selectedStates={(() => {
-                        if (!categorie_id) return {};
-                        if (typeof categorie_id === 'object' && !Array.isArray(categorie_id)) {
-                          return categorie_id as unknown as Record<string, CategoryState>;
+                        const currentCategories = watch('categories');
+
+                        // Se currentCategories è un oggetto Record<string, CategoryState>, ritornalo
+                        if (
+                          currentCategories &&
+                          typeof currentCategories === 'object' &&
+                          !Array.isArray(currentCategories)
+                        ) {
+                          return currentCategories as Record<string, CategoryState>;
                         }
-                        if (Array.isArray(categorie_id)) {
-                          return categorie_id.reduce(
-                            (acc, id) => ({
+
+                        // Se è un array, convertilo in Record<string, CategoryState>
+                        if (Array.isArray(currentCategories)) {
+                          return currentCategories.reduce(
+                            (acc: Record<string, CategoryState>, cat: any) => ({
                               ...acc,
-                              [id]: { checked: true, partialChecked: false },
+                              [cat.id]: { checked: true, partialChecked: false },
                             }),
                             {}
                           );
                         }
+
                         return {};
                       })()}
                       onCategorieChange={(newSelected) => {
@@ -882,7 +957,8 @@ export function ProdottoForm({
                           {} as Record<string, CategoryState>
                         );
 
-                        setValue('categorie_id', validatedSelection);
+                        // Salva come oggetto, verrà trasformato in array in handleFormSubmit
+                        setValue('categories', validatedSelection as any);
                       }}
                     />
                   </FormControl>
@@ -895,7 +971,7 @@ export function ProdottoForm({
                     Conferma selezione
                   </Button>
                 </Box>
-              </GenericModal> */}
+              </GenericModal>
             </Grid>
 
             {productType === 'simple' && (

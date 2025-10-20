@@ -75,37 +75,7 @@ export function CategoriaTableRow({
 
                 <TableCell>{row.slug}</TableCell>
 
-                {/* <TableCell>{row.genitore ? row.genitore.name : '-'}</TableCell> */}
-
-                {/* {onOpenProducts && (
-                    <TableCell>
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            color="info"
-                            onClick={() => onOpenProducts(row.id.toString(), row.name)}
-                            sx={{ cursor: 'pointer' }}
-                        >
-                            {row.numeroProdotti} prodotti
-                        </Button>
-                    </TableCell>
-                )} */}
-
-                {/* <TableCell>
-                    {row.immagine ? (
-                        <Box display="flex" justifyContent="center">
-                            <img src={`${import.meta.env.VITE_GEST_URL}${row.immagine.src}`} alt={row.name} style={{ width: 50 }} />
-                        </Box>
-                    ) : (
-                        '-'
-                    )}
-                </TableCell> */}
-
-                
-
-            
-
-                <TableCell align="right">
+                <TableCell>
                     <IconButton onClick={handleOpenPopover}>
                         <Iconify icon="eva:more-vertical-fill" />
                     </IconButton>

@@ -8,7 +8,7 @@ export function usePutCategoria() {
 
     return useMutation({
         mutationFn: async (data: Categoria) => {
-            const { data: response } = await axiosInstance.put<Categoria>(`${API_BASE_PREFIX}/products/categories/${data.id}`, data);
+            const { data: response } = await axiosInstance.patch<Categoria>(`${API_BASE_PREFIX}/products/categories/${data.id}`, data);
             return response;
         },
         onSuccess: () => {

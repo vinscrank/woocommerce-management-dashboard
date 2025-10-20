@@ -21,6 +21,7 @@ import { Iconify } from 'src/components/iconify';
 import { useGetCategories } from 'src/hooks/useGetCategorie';
 import { ca } from 'date-fns/locale';
 import { useUploadCategoriaImmagine } from 'src/hooks/useUploadCategoriaImmagine';
+import { useGetCategoria } from 'src/hooks/useGetCategoria';
 
 interface CategoriaFormProps {
   categoria: Categoria;
@@ -38,21 +39,18 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
   } = useForm({
     defaultValues: {
       name: categoria?.name || '',
-      slug: categoria?.slug || '',
       id: categoria?.id || '',
-      // parent: categoria?.parent || null,
-      // description: categoria?.description || '',
-      // immagine: categoria?.immagine || null as Immagine | null,
-      // created_at_con_ora: categoria?.created_at_con_ora || '',
-      // last_sync: categoria?.last_sync || null,
-      // on_sale: categoria?.on_sale || false,
-      // date_on_sale_from: categoria?.date_on_sale_from || null,
-      // date_on_sale_to: categoria?.date_on_sale_to || null,
-      // sale_percentage: categoria?.sale_percentage || null
+      parent: categoria?.parent || null,
+      description: categoria?.description || '',
+      // image: categoria?.image || (null as Immagine | null),
+      // menuOrder: categoria?.menuOrder || '',
+      // display: categoria?.display || null,
+      // count: categoria?.count || false,
     },
   });
   const { mutate: createCategoria, isPending: isPosting } = usePostCategoria();
   const { mutate: updateCategoria, isPending: isUpdating } = usePutCategoria();
+  const { data: categoriaData } = useGetCategoria(categoria?.id as number);
   const { mutate: uploadCategoriaImmagine, isPending: isUploading } = useUploadCategoriaImmagine();
 
   const { data: categorie } = useGetCategories();
@@ -115,7 +113,7 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
         {/* Form Fields */}
         {categoria?.id && (
           <>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <TextField fullWidth label="ID" {...register('id')} disabled />
             </Grid>
           </>
@@ -131,40 +129,44 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
           />
         </Grid>
 
-        {categoria?.id && (
+        {/* {categoria?.id && (
           <Grid item xs={12} md={12}>
             <TextField fullWidth label="Slug" {...register('slug')} />
           </Grid>
-        )}
+        )} */}
 
-        {/* <Grid item xs={12} md={12}>
-                    <FormControl fullWidth>
-                        <InputLabel id="parent-label">Categoria Genitore</InputLabel>
-                        <Select
-                            labelId="parent-label"
-                            label="Categoria Genitore"
-                            {...register('parent')}
-                            value={watch('parent') || ''}
-                        >
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Descrizione"
+            {...register('description')}
+            multiline
+            rows={4}
+          />
+        </Grid>
 
-                            {categorie?.map((categoria) => (
-                                <MenuItem key={categoria.id_w} value={categoria.id_w}>
-                                    {categoria.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </Grid> */}
-
-        {/* <Grid item xs={12}>
-                    <TextField
-                        fullWidth
-                        label="Descrizione"
-                        {...register('description')}
-                        multiline
-                        rows={4}
-                    />
-                </Grid> */}
+        <Grid item xs={12} md={12}>
+          <FormControl fullWidth>
+            <InputLabel id="parent-label">Categoria Genitore</InputLabel>
+            <Select
+              labelId="parent-label"
+              label="Categoria Genitore"
+              {...register('parent')}
+              value={watch('parent') || ''}
+            >
+              <MenuItem value="" disabled>
+                Seleziona categoria genitore
+              </MenuItem>
+              {categorie
+                ?.filter((cat) => cat.id !== categoria?.id)
+                .map((categoria) => (
+                  <MenuItem key={categoria.id} value={categoria.id}>
+                    {categoria.name}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+        </Grid>
 
         {/* Image Upload */}
         {/* <Grid item xs={12}>
@@ -191,28 +193,28 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
 
       {/* Actions */}
       <Grid item xs={12} sx={{ mt: 2 }}>
-                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                    {categoria?.id && onDelete && (
-                        <Button
-                            color="error"
-                            variant="contained"
-                            onClick={() => onDelete(categoria.id as number)}
-                            startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
-                        >
-                            Elimina categoria
-                        </Button>
-                    )}
-                    <Button
-                        fullWidth
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        disabled={isPosting || isUpdating}
-                    >
-                        {isPosting || isUpdating ? 'Salvataggio...' : 'Salva Categoria'}
-                    </Button>
-                </Box>
-            </Grid>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+          {categoria?.id && onDelete && (
+            <Button
+              color="error"
+              variant="contained"
+              onClick={() => onDelete(categoria.id as number)}
+              startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+            >
+              Elimina categoria
+            </Button>
+          )}
+          <Button
+            fullWidth
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={isPosting || isUpdating}
+          >
+            {isPosting || isUpdating ? 'Salvataggio...' : 'Salva Categoria'}
+          </Button>
+        </Box>
+      </Grid>
     </form>
   );
 }

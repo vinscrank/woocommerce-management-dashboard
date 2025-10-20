@@ -5,7 +5,6 @@ import { API_BASE_PREFIX } from 'src/utils/const';
 
 const fetchAttributi = async (): Promise<Attributo[]> => {
     const { data } = await axiosInstance.get(`${API_BASE_PREFIX}/products/attributes`);
-    console.log(data.data.items);
     return data.data.items;
 };
 

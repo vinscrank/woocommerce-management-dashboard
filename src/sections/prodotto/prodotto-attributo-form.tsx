@@ -48,7 +48,6 @@ export function ProdottoAttributoForm({
   prodotto,
   isLoading = false,
 }: ProdottoAttributoFormProps) {
-  console.log(prodotto_attributo);
   const [isSpecifico, setIsSpecifico] = useState(
     prodotto_attributo?.attributo?.is_specifico || false
   );

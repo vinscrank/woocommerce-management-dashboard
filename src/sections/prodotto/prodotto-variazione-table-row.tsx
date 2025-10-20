@@ -70,7 +70,6 @@ export const ProdottoVariazioneTableRow = forwardRef<
   const handleClosePopover = useCallback(() => {
     setOpenPopover(null);
   }, []);
-  console.log('Row', row);
 
   return (
     <TableRow ref={setNodeRef} style={style}>

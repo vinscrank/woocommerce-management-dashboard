@@ -68,8 +68,7 @@ export function ProdottoVariazioneForm({
     prodotto_id,
     variazioneId as number
   );
-  console.log('prodotto_id', prodotto_id);
-  console.log('variazione?.id', variazione?.id);
+
   const { mutate: deleteVariazione, isPending: isDeleteLoading } = useDeleteVariazione();
   const { data: variazioneSelezionata } = useGetVariazione(prodotto_id, variazione?.id);
 

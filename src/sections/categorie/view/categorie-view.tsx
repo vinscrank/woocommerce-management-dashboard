@@ -58,28 +58,8 @@ export default function CategorieView() {
       label: 'Slug',
     },
     {
-      id: 'genitore',
-      label: 'Cat genitore',
-    },
-    // {
-    //     id: 'prodotti',
-    //     label: 'Prodotti',
-    // },
-    {
-      id: 'immagine',
-      label: 'Immagine',
-    },
-    {
-      id: 'wordpress',
-      label: 'Su Woo',
-    },
-    {
-      id: 'sync',
-      label: 'Sync',
-    },
-    {
       id: 'actions',
-      label: '',
+      label: 'Azioni',
     },
   ];
   return (

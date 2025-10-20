@@ -65,7 +65,6 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
             ),
             leftArea: (
               <>
-               
                 <MenuButton
                   onClick={() => setNavOpen(true)}
                   sx={{
@@ -73,7 +72,7 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                     [theme.breakpoints.up(layoutQuery)]: { display: 'none' },
                   }}
                 />
-                 <BackToDashboardButton />
+                <BackToDashboardButton />
                 <NavMobile
                   data={navData}
                   open={navOpen}
@@ -84,7 +83,6 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
             ),
             rightArea: (
               <Box gap={1} display="flex" alignItems="center">
-
                 {/* <Searchbar /> */}
                 {/* <LanguagePopover data={_langs} /> */}
                 {/* <NotificationsPopover data={_notifications} /> */}
@@ -132,7 +130,7 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
        * Style
        *************************************** */
       cssVars={{
-        '--layout-nav-vertical-width': '300px',
+        '--layout-nav-vertical-width': '240px',
         '--layout-dashboard-content-pt': theme.spacing(1),
         '--layout-dashboard-content-pb': theme.spacing(8),
         '--layout-dashboard-content-px': theme.spacing(2),
@@ -140,7 +138,9 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
       sx={{
         [`& .${layoutClasses.hasSidebar}`]: {
           [theme.breakpoints.up(layoutQuery)]: {
-            pl: isCollapsed ? 'var(--layout-nav-collapsed-width, 88px)' : 'var(--layout-nav-vertical-width)',
+            pl: isCollapsed
+              ? 'var(--layout-nav-collapsed-width, 88px)'
+              : 'var(--layout-nav-vertical-width)',
           },
         },
         ...sx,

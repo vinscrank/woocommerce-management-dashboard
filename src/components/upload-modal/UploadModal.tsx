@@ -45,7 +45,6 @@ export function UploadModal({
   // Reset quando si apre la modale
   useEffect(() => {
     if (open) {
-      console.log('Modale aperta - Reset e refetch');
       setCurrentPage(1);
       setAllFiles([]);
       setHasMore(true);
@@ -56,18 +55,10 @@ export function UploadModal({
 
   // Accumula i file quando arrivano nuove pagine
   useEffect(() => {
-    console.log('Effect accumulo file - existingFiles:', existingFiles);
-    console.log('Effect accumulo file - isFetching:', isFetchingFiles);
+  
 
     if (existingFiles?.items) {
-      console.log('✅ Files ricevuti:', {
-        page: existingFiles.currentPage,
-        requestedPage: currentPage,
-        items: existingFiles.items.length,
-        totalItems: existingFiles.totalItems,
-        totalPages: existingFiles.totalPages,
-      });
-
+    
       // Verifica che la pagina ricevuta sia quella richiesta (evita race conditions)
       if (existingFiles.currentPage === currentPage) {
         if (currentPage === 1) {
@@ -80,24 +71,17 @@ export function UploadModal({
             const newFiles = existingFiles.items.filter(
               (newFile) => !prev.some((existingFile) => existingFile.id === newFile.id)
             );
-            console.log('➕ Aggiunti', newFiles.length, 'nuovi file');
             return [...prev, ...newFiles];
           });
         }
 
         // Verifica se ci sono altre pagine (controllo rigoroso)
         const morePages = existingFiles.currentPage < existingFiles.totalPages;
-        console.log(
-          '📖 Altre pagine disponibili?',
-          morePages,
-          `(${existingFiles.currentPage}/${existingFiles.totalPages})`
-        );
+       
         setHasMore(morePages);
       } else {
-        console.log('⚠️ Pagina ricevuta diversa da quella richiesta, skip');
       }
     } else {
-      console.log('❌ Nessun file ricevuto o items vuoto');
     }
   }, [existingFiles, currentPage, isFetchingFiles]);
 
@@ -115,7 +99,6 @@ export function UploadModal({
           existingFiles?.totalPages &&
           existingFiles.currentPage < existingFiles.totalPages
         ) {
-          console.log('📄 Caricamento pagina successiva:', currentPage + 1);
           setCurrentPage((prev) => prev + 1);
         }
       },

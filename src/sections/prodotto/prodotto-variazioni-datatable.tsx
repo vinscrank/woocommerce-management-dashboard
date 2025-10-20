@@ -37,11 +37,9 @@ export function ProdottoVariazioniDatatable({
   const [openForm, setOpenForm] = useState(false);
   const [selectedVariazione, setSelectedVariazione] = useState<any>(null);
 
-  console.log(prodotto);
   const { data: variazioni, isLoading: isLoadingVariazioni } = useGetVariazioni(
     prodotto_id.toString()
   );
-  console.log(variazioni);
   const { mutate: batchUpdate, isPending: isBatchUpdatePending } =
     usePostBatchVariazioni(prodotto_id);
   const { mutate: destroyVariazione, isPending: isDeleteVariazionePending } = useDeleteVariazione();
