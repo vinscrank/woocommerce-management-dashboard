@@ -45,6 +45,7 @@ export function ProdottoVariazioneForm({
   onClose,
   variazione,
   prodotto_id,
+  prodotto,
   onSubmitSuccess,
 }: ProdottoVariazioneFormProps) {
   const { control, handleSubmit, reset, setValue, watch } = useForm<any>({
@@ -57,7 +58,7 @@ export function ProdottoVariazioneForm({
       manageStock: false,
       stockQuantity: 0,
       stockStatus: 'instock',
-      prodotto_attributi_con_variazioni: [],
+      attributes: [],
     },
   });
 
@@ -78,25 +79,51 @@ export function ProdottoVariazioneForm({
     const initForm = async () => {
       if (open) {
         try {
-          // Reset completo del form prima di impostare nuovi valori
-          reset({
-            id: undefined,
-            sku: '',
-            shippingClass: '',
-            regularPrice: '',
-            salePrice: '',
-            manageStock: false,
-            stockQuantity: 0,
-            stockStatus: 'instock',
-            prodotto_attributi_con_variazioni: [],
-          });
+          if (variazione && variazioneSelezionata && prodotto) {
+            // Modifica variazione esistente
+            // Arricchisci gli attributi con le opzioni disponibili dal prodotto
+            const attributiArricchiti =
+              variazioneSelezionata.attributes?.map((varAttr: any) => {
+                // Trova l'attributo corrispondente nel prodotto
+                const prodottoAttr = prodotto.attributes?.find(
+                  (pAttr: any) => pAttr.id === varAttr.id || pAttr.name === varAttr.name
+                );
 
-          if (variazione) {
-            reset(variazioneSelezionata);
-          } else {
-            // reset(variazioneNuova, {
-            //   keepDefaultValues: true,
-            // });
+                return {
+                  id: varAttr.id || 0,
+                  name: varAttr.name,
+                  option: varAttr.option || '', // Opzione selezionata nella variazione
+                  options: prodottoAttr?.options || [], // Opzioni disponibili dal prodotto
+                };
+              }) || [];
+
+            reset({
+              ...variazioneSelezionata,
+              attributes: attributiArricchiti,
+            });
+          } else if (!variazione && prodotto) {
+            // Nuova variazione - popola gli attributi dal prodotto
+            const attributiVariazione =
+              prodotto.attributes
+                ?.filter((attr: any) => attr.variation === true)
+                .map((attr: any) => ({
+                  id: attr.id || 0,
+                  name: attr.name,
+                  option: '', // Da selezionare
+                  options: attr.options || [], // Lista opzioni disponibili
+                })) || [];
+
+            reset({
+              id: undefined,
+              sku: '',
+              shippingClass: '',
+              regularPrice: '',
+              salePrice: '',
+              manageStock: false,
+              stockQuantity: 0,
+              stockStatus: 'instock',
+              attributes: attributiVariazione,
+            });
           }
         } catch (error) {
           console.error("Errore durante l'inizializzazione del form:", error);
@@ -105,26 +132,65 @@ export function ProdottoVariazioneForm({
     };
 
     initForm();
-  }, [open, variazione, prodotto_id, variazioneSelezionata, reset]);
+  }, [open, variazione, prodotto_id, variazioneSelezionata, prodotto, reset]);
 
   const onSubmit = async (data: any) => {
     try {
+      // // Validazione: tutti gli attributi devono avere un'opzione selezionata
+      const attributiNonSelezionati = data.attributes?.filter((attr: any) => !attr.option) || [];
+      if (attributiNonSelezionati.length > 0) {
+        alert("Seleziona un'opzione per tutti gli attributi prima di salvare");
+        return;
+      }
+
+      // Prepara i dati nel formato corretto per l'API
+      const formattedData: any = {
+        attributes:
+          data.attributes?.map((attr: any) => ({
+            id: attr.id,
+            name: attr.name,
+            option: attr.option,
+          })) || [],
+        manageStock: data.manageStock ? true : 'parent',
+      };
+
+      // Aggiungi campi opzionali solo se presenti
+      if (data.sku) {
+        formattedData.sku = data.sku;
+      }
+      if (data.shippingClass) {
+        formattedData.shippingClass = data.shippingClass;
+      }
+
+      data.salePrice ? (formattedData.salePrice = data.salePrice) : (formattedData.salePrice = '');
+      data.regularPrice
+        ? (formattedData.regularPrice = data.regularPrice)
+        : (formattedData.regularPrice = '');
+        
+      if (data.stockStatus) {
+        formattedData.stockStatus = data.stockStatus;
+      }
+      if (data.manageStock && data.stockQuantity) {
+        formattedData.stockQuantity = data.stockQuantity;
+      }
+
+      console.log('Dati inviati:', JSON.stringify(formattedData, null, 2));
+
       onClose();
+
       if (data.id) {
         updateVariazione(
-          { id: data.id, data },
+          { id: data.id, data: formattedData },
           {
             onSuccess: () => {
               onSubmitSuccess?.();
-              // onClose();
             },
           }
         );
       } else {
-        storeVariazione(data, {
+        storeVariazione(formattedData, {
           onSuccess: () => {
             onSubmitSuccess?.();
-            //onClose();
           },
         });
       }
@@ -166,21 +232,24 @@ export function ProdottoVariazioneForm({
                   render={({ field }) => (
                     <>
                       {field.value?.map((attributo: any, index: number) => (
-                        <Grid item xs={12} md={3} key={index}>
+                        <Grid item xs={12} md={6} key={index}>
                           <FormControl fullWidth>
                             <InputLabel>{attributo.name}</InputLabel>
                             <Select
                               value={attributo.option || ''}
                               onChange={(e) => {
                                 const newValue = [...field.value];
-                                newValue[index].option = e.target.value;
+                                newValue[index] = {
+                                  ...newValue[index],
+                                  option: e.target.value,
+                                };
                                 field.onChange(newValue);
                               }}
                               label={attributo.name}
                             >
-                              {attributo.options?.map((opzione: any) => (
-                                <MenuItem key={opzione.id} value={opzione.id}>
-                                  {opzione.name}
+                              {attributo.options?.map((opzione: string, opzioneIndex: number) => (
+                                <MenuItem key={opzioneIndex} value={opzione}>
+                                  {opzione}
                                 </MenuItem>
                               ))}
                             </Select>
