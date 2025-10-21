@@ -111,12 +111,11 @@ export function ProdottoForm({
       shortDescription: prodotto?.shortDescription || '',
       description: prodotto?.description || '',
       categories: prodotto?.categories || [],
-      //tags_id: prodotto?.tags_id || [],
+      tags: prodotto?.tags || [],
       //deleted: prodotto?.deleted || false,
       id: prodotto?.id || undefined,
       permalink: prodotto?.permalink || '',
       //abilitato: prodotto?.abilitato || true,
-    
     },
   });
 
@@ -131,7 +130,6 @@ export function ProdottoForm({
           ? dayjs(prodotto.dateOnSaleTo).format('DD-MM-YYYY')
           : undefined,
       });
-
     }
   }, [prodotto, reset, setValue]);
 
@@ -204,7 +202,7 @@ export function ProdottoForm({
   // Costruisci l'albero gerarchico delle categorie
   const categorieTree = buildCategoryTree(categorie);
 
-  // const { data: tags, isFetching, isRefetching } = useGetTags();
+  const { data: tags, isFetching, isRefetching } = useGetTags();
   const { mutate: storeProdotto, isPending: isStoreLoading } = usePostProdotto();
   const { mutate: updateProdotto, isPending: isUpdateLoading } = usePutProdotto(
     prodotto?.id as number
@@ -491,7 +489,6 @@ export function ProdottoForm({
 
     // Pulisci i campi vuoti prima di inviare
     const cleanedFormData = cleanEmptyFields(formData);
-
     salvaProdotto(cleanedFormData);
   };
 
@@ -868,35 +865,46 @@ export function ProdottoForm({
               />
             </Grid>
 
-            {/* <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel id="tags-label">Tags</InputLabel>
                 <Select
                   labelId="tags-label"
-                  id="tags_id"
+                  id="tags"
                   label="Tags"
                   multiple
-                  defaultValue={prodotto?.tags_id?.map((tag) => tag.toString()) || []}
+                  value={watch('tags')?.map((tag: any) => tag.id?.toString()) || []}
+                  onChange={(e) => {
+                    const selectedIds = e.target.value as string[];
+                    const selectedTags = selectedIds
+                      .map((id) => tags?.find((tag) => tag.id?.toString() === id))
+                      .filter(Boolean)
+                      .map((tag) => ({
+                        id: tag!.id,
+                        name: tag!.name,
+                        slug: tag!.slug,
+                      }));
+                    setValue('tags', selectedTags as any);
+                  }}
                   renderValue={(selected: string[]) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {selected.map((value: string) => (
                         <Chip
                           key={value}
-                          label={tags?.find((tag) => tag.id.toString() === value)?.name || value}
+                          label={tags?.find((tag) => tag.id?.toString() === value)?.name || value}
                         />
                       ))}
                     </Box>
                   )}
-                  {...register('tags_id')}
                 >
                   {tags?.map((tag) => (
-                    <MenuItem key={tag.id} value={tag.id.toString()}>
+                    <MenuItem key={tag.id} value={tag.id?.toString() || ''}>
                       {tag.name}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-            </Grid> */}
+            </Grid>
 
             <Grid item xs={12} md={6} mt={1}>
               <Button

@@ -19,9 +19,7 @@ const columns: Column[] = [
     { id: 'id', label: 'ID' },
     { id: 'name', label: 'Nome' },
     { id: 'slug', label: 'Slug' },
-    { id: 'woocommerce', label: 'Su WooCommerce' },
-    { id: 'last_sync', label: 'Ultimo Sync' },
-    { id: 'actions', label: '' }
+    { id: 'actions', label: 'Azioni' }
 ];
 
 export function TagsView() {

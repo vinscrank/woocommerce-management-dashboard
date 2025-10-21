@@ -18,8 +18,6 @@ export function TagForm({ tag, onSubmit }: TagFormProps) {
     const { register, handleSubmit, formState: { errors }, setValue } = useForm({
         defaultValues: {
             name: tag?.name || '',
-            slug: tag?.slug || '',
-            id: tag?.id || '',
         }
     });
     const { mutate: createTag, isPending: isPosting } = usePostTag();
@@ -56,7 +54,7 @@ export function TagForm({ tag, onSubmit }: TagFormProps) {
 
                 {tag?.id && (
                     <>
-                        <Grid item xs={6}>
+                        <Grid item xs={12}>
                             <TextField
                                 fullWidth
                                 label="ID"
@@ -80,7 +78,7 @@ export function TagForm({ tag, onSubmit }: TagFormProps) {
                     />
                 </Grid>
 
-                {tag?.id && (
+                {/* {tag?.id && (
                     <Grid item xs={12}>
                         <TextField
                             fullWidth
@@ -89,7 +87,7 @@ export function TagForm({ tag, onSubmit }: TagFormProps) {
                             {...register('slug', { required: true })}
                         />
                     </Grid>
-                )}
+                )} */}
 
 
 

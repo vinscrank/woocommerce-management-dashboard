@@ -10,10 +10,10 @@ export function usePutTag() {
     const { ecommerceId } = useWorkspace();
     return useMutation({
         mutationFn: async (data: Tag) => {
-            const { data: response } = await axiosInstance.put<Tag>(`${API_BASE_PREFIX}/${ecommerceId}/products/tags/${data.id}`, data);
+            const { data: response } = await axiosInstance.patch<Tag>(`${API_BASE_PREFIX}/${ecommerceId}/products/tags/${data.id}`, data);
             return response;
         },
-        onSuccess: (updatedTag) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tags'] });
         },
     });
