@@ -104,8 +104,16 @@ export function ProdottoForm({
       regularPrice: prodotto?.regularPrice || '',
       salePrice: prodotto?.salePrice || '',
       price: prodotto?.price || '',
-      dateOnSaleFrom: prodotto?.dateOnSaleFrom || '',
-      dateOnSaleTo: prodotto?.dateOnSaleTo || '',
+      dateOnSaleFrom: prodotto?.dateOnSaleFrom
+        ? dayjs(prodotto.dateOnSaleFrom).isValid()
+          ? dayjs(prodotto.dateOnSaleFrom).format('DD-MM-YYYY')
+          : ''
+        : '',
+      dateOnSaleTo: prodotto?.dateOnSaleTo
+        ? dayjs(prodotto.dateOnSaleTo).isValid()
+          ? dayjs(prodotto.dateOnSaleTo).format('DD-MM-YYYY')
+          : ''
+        : '',
       //meta_title: prodotto?.meta_title || '',
       //meta_description: prodotto?.meta_description || '',
       shortDescription: prodotto?.shortDescription || '',
@@ -123,11 +131,16 @@ export function ProdottoForm({
     if (prodotto) {
       reset({
         ...prodotto,
+        // Parse la data dal formato ISO o da qualsiasi formato valido
         dateOnSaleFrom: prodotto.dateOnSaleFrom
-          ? dayjs(prodotto.dateOnSaleFrom).format('DD-MM-YYYY')
+          ? dayjs(prodotto.dateOnSaleFrom).isValid()
+            ? dayjs(prodotto.dateOnSaleFrom).format('DD-MM-YYYY')
+            : undefined
           : undefined,
         dateOnSaleTo: prodotto.dateOnSaleTo
-          ? dayjs(prodotto.dateOnSaleTo).format('DD-MM-YYYY')
+          ? dayjs(prodotto.dateOnSaleTo).isValid()
+            ? dayjs(prodotto.dateOnSaleTo).format('DD-MM-YYYY')
+            : undefined
           : undefined,
       });
     }
@@ -440,12 +453,24 @@ export function ProdottoForm({
     const formData = {
       ...data,
       // immagini_nomi: data.immagini_nomi_string.split(','),
-      dateOnSaleFrom: data.dateOnSaleFrom
-        ? dayjs(data.dateOnSaleFrom, 'DD-MM-YYYY').format('YYYY-MM-DDTHH:mm:ss')
-        : undefined,
-      dateOnSaleTo: data.dateOnSaleTo
-        ? dayjs(data.dateOnSaleTo, 'DD-MM-YYYY').format('YYYY-MM-DDTHH:mm:ss')
-        : undefined,
+      // Converti le date nel formato ISO 8601 richiesto da WooCommerce
+      // Formato esatto: "YYYY-MM-DDTHH:mm:ss" (es: "2025-10-06T00:00:00")
+      // Entrambe le date con ora 00:00:00
+      dateOnSaleFrom:
+        data.dateOnSaleFrom && data.dateOnSaleFrom.trim() !== ''
+          ? dayjs(data.dateOnSaleFrom, 'DD-MM-YYYY').isValid()
+            ? dayjs(data.dateOnSaleFrom, 'DD-MM-YYYY').startOf('day').format('YYYY-MM-DDTHH:mm:ss')
+            : null
+          : null,
+      dateOnSaleTo:
+        data.dateOnSaleTo && data.dateOnSaleTo.trim() !== ''
+          ? dayjs(data.dateOnSaleTo, 'DD-MM-YYYY').isValid()
+            ? dayjs(data.dateOnSaleTo, 'DD-MM-YYYY').startOf('day').format('YYYY-MM-DDTHH:mm:ss')
+            : null
+          : null,
+      // Rimuovi i campi GMT che potrebbero causare conflitti
+      dateOnSaleFromGmt: undefined,
+      dateOnSaleToGmt: undefined,
     };
 
     // Trasforma categories da oggetto a array nel formato WooCommerce
