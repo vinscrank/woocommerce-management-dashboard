@@ -4,6 +4,7 @@ import { DashboardContent } from 'src/layouts/dashboard/main';
 import { useGetFiles } from 'src/hooks/useGetFiles';
 import { useSnackbar } from 'src/context/SnackbarContext';
 import { GenericTable } from 'src/components/generic-table/GenericTable';
+import { useDebounce } from 'src/hooks/useDebounce';
 
 import { FileTableRow } from '../file-table-row';
 import { FileUploader } from '../file-uploader';
@@ -22,18 +23,9 @@ export function FilesView() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
-  // Debounce della ricerca: aggiorna debouncedSearchQuery dopo 1 secondo
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 1000);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [searchQuery]);
+  // Usa l'hook per il debounce
+  const debouncedSearchQuery = useDebounce(searchQuery, 1000);
 
   // Resetta la pagina quando la ricerca debouncata cambia
   useEffect(() => {
