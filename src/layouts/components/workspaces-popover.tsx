@@ -13,6 +13,8 @@ import { varAlpha } from 'src/theme/styles';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { useWorkspace } from 'src/context/WorkspaceContext';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
 // ----------------------------------------------------------------------
 
@@ -35,6 +37,8 @@ export function WorkspacesPopover({
 }: WorkspacesPopoverProps) {
   const { selectedWorkspaceId, setSelectedWorkspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Seleziona automaticamente il primo workspace se non ce n'è uno selezionato
   useEffect(() => {
@@ -56,10 +60,21 @@ export function WorkspacesPopover({
 
   const handleChangeWorkspace = useCallback(
     (workspaceId: string) => {
+      // Cambia workspace
       setSelectedWorkspaceId(workspaceId);
+
+      // Invalida tutte le query per fare refresh completo dei dati
+      queryClient.invalidateQueries();
+
+      // Naviga alla home
+      navigate('/');
+
+      // Chiudi il popover
       handleClosePopover();
+
+      console.log('✅ Workspace cambiato, dati aggiornati e navigato alla home');
     },
-    [handleClosePopover, setSelectedWorkspaceId]
+    [handleClosePopover, setSelectedWorkspaceId, navigate, queryClient]
   );
 
   const renderAvatar = (alt: string, src: React.ReactNode, href: string) => (

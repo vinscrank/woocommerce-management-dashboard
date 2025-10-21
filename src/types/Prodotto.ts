@@ -3,7 +3,9 @@
 import { components } from "./Global";
 
 // import { ProdottoAttributo } from "./ProdottoAttributo"
-export type Prodotto = components["schemas"]["WooCommerceProductResponse"];
+export type Prodotto = components["schemas"]["WooCommerceProductResponse"] & {
+    metaData?: Array<{ id?: number; key: string; value: string }>;
+};
 
 // export interface components {
 //     schemas: {

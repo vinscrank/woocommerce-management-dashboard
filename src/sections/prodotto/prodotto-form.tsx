@@ -63,6 +63,12 @@ import { useGetFiles } from 'src/hooks/useGetFiles';
 import { UploadModal } from 'src/components/upload-modal/UploadModal';
 import { useDevUrl } from 'src/hooks/useDevUrl';
 import { Categoria } from 'src/types/Categoria';
+import { useProdottoStatus } from 'src/hooks/useProdottoStatus';
+import {
+  ProdottoStatusLabel,
+  StockStatusLabel,
+  CatalogVisibilityLabel,
+} from 'src/types/ProdottoEnums';
 
 type ProdottoFormProps = {
   prodotto: Prodotto | null;
@@ -152,28 +158,35 @@ export function ProdottoForm({
   const manageStock = watch('manageStock');
 
   const { convertUrl } = useDevUrl();
+  const { ProdottoStatus, StockStatus, CatalogVisibility } = useProdottoStatus();
+
   const prodottoTipi = [
     { name: 'Variabile', value: 'variable' },
     { name: 'Semplice', value: 'simple' },
   ];
 
   const prodottoStati = [
-    { name: 'Pubblicato', value: 'publish' },
-    { name: 'Privato', value: 'private' },
-    { name: 'Bozza', value: 'draft' },
+    { name: ProdottoStatusLabel[ProdottoStatus.PUBLISH], value: ProdottoStatus.PUBLISH },
+    { name: ProdottoStatusLabel[ProdottoStatus.PRIVATE], value: ProdottoStatus.PRIVATE },
+    { name: ProdottoStatusLabel[ProdottoStatus.DRAFT], value: ProdottoStatus.DRAFT },
+    { name: ProdottoStatusLabel[ProdottoStatus.PENDING], value: ProdottoStatus.PENDING },
+    // { name: ProdottoStatusLabel[ProdottoStatus.FUTURE], value: ProdottoStatus.FUTURE },
+    //{ name: ProdottoStatusLabel[ProdottoStatus.TRASH], value: ProdottoStatus.TRASH },
+    //{ name: ProdottoStatusLabel[ProdottoStatus.AUTO_DRAFT], value: ProdottoStatus.AUTO_DRAFT },
+    //{ name: ProdottoStatusLabel[ProdottoStatus.INHERIT], value: ProdottoStatus.INHERIT },
   ];
 
   const stockStati = [
-    { name: 'Disponibile', value: 'instock' },
-    { name: 'Esaurito', value: 'outofstock' },
-    { name: 'Permette ordini arretrati', value: 'onbackorder' },
+    { name: StockStatusLabel[StockStatus.IN_STOCK], value: StockStatus.IN_STOCK },
+    { name: StockStatusLabel[StockStatus.OUT_OF_STOCK], value: StockStatus.OUT_OF_STOCK },
+    { name: StockStatusLabel[StockStatus.ON_BACKORDER], value: StockStatus.ON_BACKORDER },
   ];
 
   const catalogVisibilityOptions = [
-    { name: 'Visibile ovunque', value: 'visible' },
-    { name: 'Solo nel catalogo', value: 'catalog' },
-    { name: 'Solo nei risultati di ricerca', value: 'search' },
-    { name: 'Nascosto', value: 'hidden' },
+    { name: CatalogVisibilityLabel[CatalogVisibility.VISIBLE], value: CatalogVisibility.VISIBLE },
+    { name: CatalogVisibilityLabel[CatalogVisibility.CATALOG], value: CatalogVisibility.CATALOG },
+    { name: CatalogVisibilityLabel[CatalogVisibility.SEARCH], value: CatalogVisibility.SEARCH },
+    { name: CatalogVisibilityLabel[CatalogVisibility.HIDDEN], value: CatalogVisibility.HIDDEN },
   ];
 
   const { data: categorie } = useGetCategories();
@@ -233,6 +246,21 @@ export function ProdottoForm({
   const [shortDescription, setShortDescription] = useState(prodotto?.shortDescription || '');
   const [fullDescription, setFullDescription] = useState(prodotto?.description || '');
 
+  // Stato per gestire i metaData
+  // WooCommerce usa 'name' ma noi mappiamo a 'key' per consistenza
+  const [metaData, setMetaData] = useState<
+    Array<{ id?: number; key?: string; name?: string; value?: string }>
+  >(
+    prodotto?.metaData?.map((meta) => {
+      const metaAny = meta as any;
+      return {
+        ...meta,
+        key: metaAny.key || metaAny.name,
+        name: metaAny.name || metaAny.key,
+      };
+    }) || []
+  );
+
   // Aggiungi questo stato per gestire l'apertura/chiusura della modal
   const [isCategorieModalOpen, setIsCategorieModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -246,6 +274,22 @@ export function ProdottoForm({
   useEffect(() => {
     setValue('description', fullDescription as never);
   }, [fullDescription, setValue]);
+
+  // Aggiorna metaData quando cambia il prodotto
+  useEffect(() => {
+    if (prodotto?.metaData) {
+      setMetaData(
+        prodotto.metaData.map((meta) => {
+          const metaAny = meta as any;
+          return {
+            ...meta,
+            key: metaAny.key || metaAny.name,
+            name: metaAny.name || metaAny.key,
+          };
+        })
+      );
+    }
+  }, [prodotto?.metaData]);
 
   // Configurazione dei moduli per l'editor Quill
   const quillModules = {
@@ -274,7 +318,7 @@ export function ProdottoForm({
   const getAccordionStyles = (title: string) => {
     // Colori diversi per ogni tipo di accordion
     const colorMap: Record<string, string> = {
-      'Azioni prodotto': '#e3f2fd',
+      'Azioni prodotto': '#fff',
       'Categorie, Tag': '#fff',
       Prezzi: '#fff',
       Immagini: '#fff',
@@ -295,6 +339,14 @@ export function ProdottoForm({
     return {
       borderRadius: 2,
       mb: 2,
+      border: '1px solid',
+      borderColor: 'divider',
+      marginTop: '10px !important',
+      padding: '10px !important',
+      boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.1)',
+      '&:before': {
+        display: 'none', // Rimuovi il bordo default di MUI
+      },
       '& .MuiAccordionSummary-root': {
         backgroundColor: colorMap[title],
         borderRadius: '8px 8px 0 0',
@@ -407,7 +459,13 @@ export function ProdottoForm({
       }
 
       // Salta i valori null, undefined o stringhe vuote (anche dopo trim)
+      // WooCommerce non accetta stringhe vuote, preferisce l'assenza del campo
       if (value === null || value === undefined || value === '') {
+        return;
+      }
+
+      // Se è un array vuoto, salta
+      if (Array.isArray(value) && value.length === 0) {
         return;
       }
 
@@ -418,9 +476,11 @@ export function ProdottoForm({
         if (Object.keys(cleanedNested).length > 0) {
           cleaned[key] = cleanedNested;
         }
-      } else {
-        cleaned[key] = value;
+        return;
       }
+
+      // Mantieni il valore se non è vuoto
+      cleaned[key] = value;
     });
 
     return cleaned;
@@ -471,6 +531,8 @@ export function ProdottoForm({
       // Rimuovi i campi GMT che potrebbero causare conflitti
       dateOnSaleFromGmt: undefined,
       dateOnSaleToGmt: undefined,
+      // Aggiungi i metaData modificati
+      metaData: metaData,
     };
 
     // Trasforma categories da oggetto a array nel formato WooCommerce
@@ -512,8 +574,59 @@ export function ProdottoForm({
         .filter(Boolean);
     }
 
+    // Assicurati che i campi critici siano presenti
+    if (!formData.status || formData.status.trim() === '') {
+      formData.status = 'draft'; // Default a bozza se non specificato
+    }
+    if (!formData.type || formData.type.trim() === '') {
+      formData.type = 'simple'; // Default a semplice se non specificato
+    }
+
+    // Rimuovi campi read-only che WooCommerce genera automaticamente
+    // Questi campi non dovrebbero essere inviati nell'update/create
+    const readOnlyFields = [
+      'permalink',
+      'link',
+      'dateCreated',
+      'dateCreatedGmt',
+      'dateModified',
+      'dateModifiedGmt',
+      'createdAt',
+      'createdAtGmt',
+      'updatedAt',
+      'updatedAtGmt',
+      'onSale',
+      'purchasable',
+      'totalSales',
+      'averageRating',
+      'ratingCount',
+      'relatedIds',
+      'backordersAllowed',
+      'backordered',
+    ];
+
+    readOnlyFields.forEach((field) => {
+      if (formData.hasOwnProperty(field)) {
+        delete formData[field];
+      }
+    });
+
+    // Pulisci i metaData rimuovendo quelli con valori vuoti
+    if (formData.metaData && Array.isArray(formData.metaData)) {
+      formData.metaData = formData.metaData.filter((meta: any) => {
+        // Mantieni solo i metaData con valori non vuoti
+        return meta.value !== null && meta.value !== undefined && meta.value !== '';
+      });
+
+      // Se non ci sono metaData validi, rimuovi completamente l'array
+      if (formData.metaData.length === 0) {
+        delete formData.metaData;
+      }
+    }
+
     // Pulisci i campi vuoti prima di inviare
     const cleanedFormData = cleanEmptyFields(formData);
+
     salvaProdotto(cleanedFormData);
   };
 
@@ -1124,13 +1237,13 @@ export function ProdottoForm({
               </Grid>
             )}
 
-            <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
+            <Grid item xs={12} sx={{ paddingTop: '0px !important' }}>
               <Accordion defaultExpanded={true} sx={getAccordionStyles('Immagini')}>
                 <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
                   <Typography>Immagini</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Grid container spacing={3}>
+                  <Grid container spacing={1}>
                     {prodotto?.images && prodotto?.images?.length > 0 && (
                       <Grid item xs={12}>
                         <DndContext
@@ -1389,70 +1502,180 @@ export function ProdottoForm({
               />
             </Grid>
 
-            <Grid item xs={12}>
-              <Box className="card-header" mb={3}>
-                {/* Resto del contenuto del form */}
-                {prodotto?.id && (
-                  <Accordion sx={getAccordionStyles('Azioni prodotto')}>
-                    <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
-                      <Typography>Azioni prodotto</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Box display="flex" justifyContent="flex-start" py={3}>
-                        <Box>
-                          {prodotto.id && prodotto.status === 'trash' && (
-                            <Button
-                              variant="contained"
-                              color="error"
-                              startIcon={<i className="pi pi-trash"></i>}
-                              onClick={() =>
-                                handleDelete && handleDelete(prodotto.id?.toString() || '', true)
-                              }
-                            >
-                              Elimina definitivamente prodotto
-                            </Button>
-                          )}
+            {/* Sezione MetaData - Solo SEO (Title e Description) */}
+            {prodotto?.id &&
+              metaData &&
+              metaData.length > 0 &&
+              (() => {
+                // Filtra solo i metaData SEO che vogliamo mostrare
+                const seoMetaData = metaData.filter((meta) => {
+                  const metaKey = meta.key || meta.name || '';
+                  return (
+                    metaKey === '_yoast_wpseo_title' ||
+                    metaKey === 'yoast_wpseo_title' ||
+                    metaKey === '_yoast_wpseo_metadesc' ||
+                    metaKey === 'yoast_wpseo_metadesc'
+                  );
+                });
 
-                          {prodotto.id && prodotto.status !== 'trash' && (
-                            <Button
-                              sx={{ mr: 2 }}
-                              variant="contained"
-                              color="error"
-                              startIcon={<i className="pi pi-trash"></i>}
-                              onClick={() =>
-                                handleDelete && handleDelete(prodotto.id?.toString() || '', false)
-                              }
-                            >
-                              Sposta prodotto nel cestino
-                            </Button>
-                          )}
-                        </Box>
+                if (seoMetaData.length === 0) return null;
 
-                        <Box>
-                          {prodotto.status !== 'trash' && (
-                            <>
-                              <Button
-                                variant="contained"
-                                color="success"
-                                startIcon={<Iconify icon="vscode-icons:file-type-excel" />}
-                                onClick={() => exportProdotto([prodotto.id?.toString() || ''])}
-                                sx={{ mr: 2 }}
-                              >
-                                Esporta prodotto
-                              </Button>
-                            </>
-                          )}
-                          {prodotto.status === 'trash' && (
-                            <Box display="flex" alignItems="center" pt={2}>
-                              Nessuna azione disponibile
-                            </Box>
-                          )}
-                        </Box>
+                return (
+                  <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
+                    <Accordion sx={getAccordionStyles('SEO')} defaultExpanded={false}>
+                      <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                        <Typography>SEO - Meta Title e Description</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Grid container spacing={2}>
+                          {seoMetaData.map((meta, seoIndex) => {
+                            const metaKey = meta.key || meta.name || '';
+
+                            // Label leggibile
+                            const getLabel = (key: string) => {
+                              if (key.includes('title')) return 'Meta Title';
+                              if (key.includes('desc')) return 'Meta Description';
+                              return 'Valore';
+                            };
+
+                            // Placeholder personalizzato
+                            const getPlaceholder = (key: string) => {
+                              if (key.includes('title'))
+                                return 'Inserisci il Meta Title (max 60 caratteri consigliati)';
+                              if (key.includes('desc'))
+                                return 'Inserisci la Meta Description (max 160 caratteri consigliati)';
+                              return 'Inserisci valore';
+                            };
+
+                            // Description è sempre textarea
+                            const isDescription = metaKey.toLowerCase().includes('desc');
+
+                            // Funzione per aggiornare/creare metaData
+                            const handleMetaChange = (newValue: string) => {
+                              const newMetaData = [...metaData];
+                              const existingIndex = newMetaData.findIndex(
+                                (m) => (m.key || m.name) === metaKey
+                              );
+
+                              if (existingIndex >= 0) {
+                                // Aggiorna esistente
+                                newMetaData[existingIndex].value = newValue;
+                              } else {
+                                // Aggiungi nuovo
+                                newMetaData.push({
+                                  key: metaKey,
+                                  name: metaKey,
+                                  value: newValue,
+                                });
+                              }
+                              setMetaData(newMetaData);
+                            };
+
+                            return (
+                              <Grid item xs={12} key={meta.id || seoIndex}>
+                                <Box
+                                  sx={{
+                                    p: 2,
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    borderRadius: 1,
+                                    bgcolor: 'background.neutral',
+                                  }}
+                                >
+                                  {isDescription ? (
+                                    <TextField
+                                      fullWidth
+                                      multiline
+                                      rows={3}
+                                      label={getLabel(metaKey)}
+                                      value={meta.value || ''}
+                                      onChange={(e) => handleMetaChange(e.target.value)}
+                                      placeholder={getPlaceholder(metaKey)}
+                                      helperText={`${meta.value?.length || 0} caratteri`}
+                                    />
+                                  ) : (
+                                    <TextField
+                                      fullWidth
+                                      label={getLabel(metaKey)}
+                                      value={meta.value || ''}
+                                      onChange={(e) => handleMetaChange(e.target.value)}
+                                      placeholder={getPlaceholder(metaKey)}
+                                      helperText={`${meta.value?.length || 0} caratteri`}
+                                    />
+                                  )}
+                                </Box>
+                              </Grid>
+                            );
+                          })}
+                        </Grid>
+                      </AccordionDetails>
+                    </Accordion>
+                  </Grid>
+                );
+              })()}
+
+            <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
+              {/* Resto del contenuto del form */}
+              {prodotto?.id && (
+                <Accordion sx={getAccordionStyles('Azioni prodotto')}>
+                  <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                    <Typography>Azioni prodotto</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box display="flex" justifyContent="flex-start" py={3}>
+                      <Box>
+                        {prodotto.id && prodotto.status === 'trash' && (
+                          <Button
+                            variant="contained"
+                            color="error"
+                            startIcon={<i className="pi pi-trash"></i>}
+                            onClick={() =>
+                              handleDelete && handleDelete(prodotto.id?.toString() || '', true)
+                            }
+                          >
+                            Elimina definitivamente prodotto
+                          </Button>
+                        )}
+
+                        {prodotto.id && prodotto.status !== 'trash' && (
+                          <Button
+                            sx={{ mr: 2 }}
+                            variant="contained"
+                            color="error"
+                            startIcon={<i className="pi pi-trash"></i>}
+                            onClick={() =>
+                              handleDelete && handleDelete(prodotto.id?.toString() || '', false)
+                            }
+                          >
+                            Sposta prodotto nel cestino
+                          </Button>
+                        )}
                       </Box>
-                    </AccordionDetails>
-                  </Accordion>
-                )}
-              </Box>
+
+                      <Box>
+                        {prodotto.status !== 'trash' && (
+                          <>
+                            <Button
+                              variant="contained"
+                              color="success"
+                              startIcon={<Iconify icon="vscode-icons:file-type-excel" />}
+                              onClick={() => exportProdotto([prodotto.id?.toString() || ''])}
+                              sx={{ mr: 2 }}
+                            >
+                              Esporta prodotto
+                            </Button>
+                          </>
+                        )}
+                        {prodotto.status === 'trash' && (
+                          <Box display="flex" alignItems="center" pt={2}>
+                            Nessuna azione disponibile
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+              )}
             </Grid>
           </Grid>
         </form>

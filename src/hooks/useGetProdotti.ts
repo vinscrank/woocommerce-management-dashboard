@@ -33,6 +33,7 @@ const fetchProdotti = async (
             page,
             perPage,
             fields: 'id,name,sku,price,regularPrice,salePrice,images,date_created,date_modified,status,stock_status,type',
+            status: 'any', // Include tutti gli stati: publish, draft, pending, private, trash, etc.
             ...(searchParam && { search: searchParam }),
         },
     });

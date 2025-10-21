@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'src/context/SnackbarContext';
 import { Prodotto } from 'src/types/Prodotto';
 import { formatDate, formatDateTime } from 'src/hooks/use-format-date';
+import { useProdottoStatus } from 'src/hooks/useProdottoStatus';
 
 type ProdottoTableRowProps = {
   row: Prodotto;
@@ -47,6 +48,14 @@ export function ProdottoTableRow({
   const { mutate: deleteProdotto, isPending: isDeleting } = useDeleteProdotto(row.id as number);
   const { showMessage } = useSnackbar();
   const navigate = useNavigate();
+
+  // Hook per gestire gli stati del prodotto
+  const { getStatusInfo, getStockInfo, getTypeInfo, isTrashed } = useProdottoStatus();
+
+  // Ottieni le info sugli stati
+  const statusInfo = getStatusInfo(row.status);
+  const stockInfo = getStockInfo(row.stockStatus);
+  const typeInfo = getTypeInfo(row.type);
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
   }, []);
@@ -106,37 +115,21 @@ export function ProdottoTableRow({
           )}
         </TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>
-          <Label color={row.type === 'simple' ? 'secondary' : 'info'}>{row.type}</Label>
+          <Label color={typeInfo.color}>{typeInfo.label}</Label>
         </TableCell>
         {/* {JSON.stringify(row)} */}
-        <TableCell onClick={(e) => e.stopPropagation()}>{formatDateTime(row.dateCreated)}</TableCell>
-        <TableCell onClick={(e) => e.stopPropagation()}>{formatDateTime(row.dateModified)}</TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>
-          <Label
-            color={
-              row.status === 'publish' ? 'success' : row.status === 'draft' ? 'warning' : 'error'
-            }
-          >
-            {row.status === 'publish' ? 'Pubblicato' : row.status === 'draft' ? 'Bozza' : 'Cestino'}
-          </Label>
+          {formatDateTime(row.dateCreated)}
+        </TableCell>
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          {formatDateTime(row.dateModified)}
+        </TableCell>
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <Label color={statusInfo.color}>{statusInfo.label}</Label>
         </TableCell>
         <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-          <Label
-            color={
-              row.stockStatus === 'instock'
-                ? 'success'
-                : row.stockStatus === 'onbackorder'
-                  ? 'warning'
-                  : 'error'
-            }
-          >
-            <Iconify
-              icon={
-                row.stockStatus === 'outofstock' || row.stockStatus === null
-                  ? 'eva:alert-triangle-fill'
-                  : 'eva:checkmark-fill'
-              }
-            />
+          <Label color={stockInfo.color}>
+            {stockInfo.icon && <Iconify icon={stockInfo.icon} />}
           </Label>
         </TableCell>
         {/* <TableCell align="center" onClick={(e) => e.stopPropagation()}>
@@ -193,7 +186,7 @@ export function ProdottoTableRow({
             Modifica
           </MenuItem>
 
-          {row.status === 'trash' ? (
+          {isTrashed(row.status) ? (
             <MenuItem onClick={() => handleDelete(true)} sx={{ color: 'error.main' }}>
               {isDeleting ? (
                 <CircularProgress size={20} />

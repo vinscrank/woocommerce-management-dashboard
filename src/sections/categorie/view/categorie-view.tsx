@@ -58,6 +58,10 @@ export default function CategorieView() {
       label: 'Slug',
     },
     {
+      id: 'image',
+      label: 'Immagine',
+    },
+    {
       id: 'actions',
       label: 'Azioni',
     },
