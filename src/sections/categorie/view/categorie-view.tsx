@@ -13,9 +13,31 @@ import { Categoria } from 'src/types/Categoria';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { CategoriaForm } from '../categoria-form';
 import { useExportCategorie } from 'src/hooks/useExportCategorie';
+import { usePaginatedTable } from 'src/hooks/usePaginatedTable';
 
 export default function CategorieView() {
-  const { data: categories } = useGetCategories();
+  // Hook per paginazione e ricerca
+  const {
+    page,
+    rowsPerPage,
+    searchQuery,
+    debouncedSearchQuery,
+    handlePageChange,
+    handleRowsPerPageChange,
+    handleSearch,
+  } = usePaginatedTable({
+    initialPage: 0,
+    initialRowsPerPage: 25,
+  });
+
+  const { data, isFetching, isRefetching } = useGetCategories(
+    page + 1,
+    rowsPerPage,
+    debouncedSearchQuery
+  );
+  const categories = data?.items || [];
+  const totalItems = data?.totalItems || 0;
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategoria, setSelectedCategoria] = useState<Categoria | null>(null);
 
@@ -76,7 +98,7 @@ export default function CategorieView() {
         gap={1}
       >
         <Typography variant="h4" flexGrow={1}>
-          Categorie ({categories?.length || 0})
+          Categorie ({totalItems})
         </Typography>
         <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={1}>
           <Button
@@ -96,14 +118,24 @@ export default function CategorieView() {
         onClose={handleCloseModal}
         title={selectedCategoria ? `Categoria: ${selectedCategoria.name}` : 'Nuova Categoria'}
         onConfirm={handleSubmit}
-        maxWidth="xs"
+        maxWidth="md"
       >
         <CategoriaForm categoria={selectedCategoria as Categoria} onSubmit={handleSubmit} />
       </GenericModal>
 
       <GenericTable
+        isLoading={isFetching || isRefetching}
         data={(categories || []) as Array<Categoria & { id: number }>}
         columns={columns}
+        noOrder={true}
+        serverSidePagination
+        totalItems={totalItems}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
         renderRow={(row) => (
           <CategoriaTableRow
             key={row.id}

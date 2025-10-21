@@ -183,7 +183,6 @@ input[type='number']::-webkit-inner-spin-button {
 .MuiChip-root,
 .MuiDialog-paper,
 .MuiAvatar-root,
-img,
 .MuiCardMedia-root {
   border-radius: var(--custom-border-radius) !important;
 }

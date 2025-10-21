@@ -30,6 +30,7 @@ interface AttributoOpzioniTableProps {
   onCreate: (opzione: Partial<AttributoOpzione>) => void;
   onRefresh?: () => void;
   isDeleting: boolean;
+  isLoadingParent: boolean;
 }
 
 export function AttributoOpzioniTable({
@@ -40,6 +41,7 @@ export function AttributoOpzioniTable({
   onCreate,
   onRefresh,
   isDeleting,
+  isLoadingParent,
 }: AttributoOpzioniTableProps) {
   const [openPopover, setOpenPopover] = useState<{
     element: HTMLButtonElement;
@@ -115,7 +117,7 @@ export function AttributoOpzioniTable({
         renderRow={renderRow}
         filterField="name"
         noSearch
-        isLoading={isDeleting}
+        isLoading={isDeleting || isLoadingParent || isLoading}
       />
 
       <Popover

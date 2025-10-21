@@ -26,15 +26,15 @@ import { useState, useEffect } from 'react';
 import { Prodotto } from 'src/types/Prodotto';
 import { Iconify } from 'src/components/iconify';
 import { formatDateTime } from 'src/hooks/use-format-date';
-import { useGetCategories } from 'src/hooks/useGetCategorie';
+import { useGetAllCategories } from 'src/hooks/useGetCategorie';
 import { usePostProdotto } from 'src/hooks/usePostProdotto';
 import { usePutProdotto } from 'src/hooks/usePutProdotto';
 import { useDeleteProdotto } from 'src/hooks/useDeleteProdotto';
 import { useNavigate } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
-import { useGetTags } from 'src/hooks/useGetTags';
-import { useGetBrands } from 'src/hooks/useGetBrands';
+import { useGetAllTags } from 'src/hooks/useGetTags';
+import { useGetAllBrands } from 'src/hooks/useGetBrand';
 import { ProdottoAttributiDatatable } from './prodotto-attributi-table';
 import { ProdottoVariazioniDatatable } from './prodotto-variazioni-datatable';
 import { STOCK_ENABLED } from 'src/utils/const';
@@ -187,7 +187,7 @@ export function ProdottoForm({
     { name: CatalogVisibilityLabel[CatalogVisibility.HIDDEN], value: CatalogVisibility.HIDDEN },
   ];
 
-  const { data: categorie } = useGetCategories();
+  const { data: categorie } = useGetAllCategories();
 
   // Funzione helper per costruire la gerarchia delle categorie
   const buildCategoryTree = (categories: Categoria[] | undefined): Categoria[] => {
@@ -224,8 +224,8 @@ export function ProdottoForm({
   // Costruisci l'albero gerarchico delle categorie
   const categorieTree = buildCategoryTree(categorie);
 
-  const { data: tags, isFetching, isRefetching } = useGetTags();
-  const { data: brands } = useGetBrands();
+  const { data: tags, isFetching, isRefetching } = useGetAllTags();
+  const { data: brands } = useGetAllBrands();
   const { mutate: storeProdotto, isPending: isStoreLoading } = usePostProdotto();
   const { mutate: updateProdotto, isPending: isUpdateLoading } = usePutProdotto(
     prodotto?.id as number
@@ -345,7 +345,7 @@ export function ProdottoForm({
         display: 'none', // Rimuovi il bordo default di MUI
       },
       '& .MuiAccordionSummary-root': {
-       // backgroundColor: colorMap[title],
+        // backgroundColor: colorMap[title],
         borderRadius: '8px 8px 0 0',
         transition: 'all 0.2s ease-in-out',
         // padding: '12px 24px',
@@ -795,7 +795,6 @@ export function ProdottoForm({
                       size="small"
                       variant="outlined"
                       color="primary"
-                      
                     />
                     <Chip
                       icon={<Iconify icon="solar:pen-bold" width={18} />}

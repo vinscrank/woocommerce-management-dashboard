@@ -16,6 +16,7 @@ import { useExportAttributi } from 'src/hooks/useExportAttributi';
 import { useExportOpzioni } from 'src/hooks/useExportOpzioni';
 import { useGetAttributo } from 'src/hooks/useGetAttributo';
 import AttributoOpzioniContainer from './attributo-opzioni-container';
+import { usePaginatedTable } from 'src/hooks/usePaginatedTable';
 
 const columns: Column[] = [
   { id: 'id', label: 'ID' },
@@ -24,7 +25,28 @@ const columns: Column[] = [
 ];
 
 export function AttributiView() {
-  const { data: attributi, isFetching, isRefetching } = useGetAttributi();
+  // Hook per paginazione e ricerca
+  const {
+    page,
+    rowsPerPage,
+    searchQuery,
+    debouncedSearchQuery,
+    handlePageChange,
+    handleRowsPerPageChange,
+    handleSearch,
+  } = usePaginatedTable({
+    initialPage: 0,
+    initialRowsPerPage: 25,
+  });
+
+  const { data, isFetching, isRefetching } = useGetAttributi(
+    page + 1,
+    rowsPerPage,
+    debouncedSearchQuery
+  );
+  const attributi = data?.items || [];
+  const totalItems = data?.totalItems || 0;
+
   const { isPending: isDeleting } = useDeleteAttributo();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAttributoId, setSelectedAttributoId] = useState<number | null>(null);
@@ -68,7 +90,7 @@ export function AttributiView() {
     <DashboardContent>
       <Box display="flex" alignItems="center" mb={2}>
         <Typography variant="h4" flexGrow={1}>
-          Lista Attributi ({attributi?.length || 0})
+          Lista Attributi ({totalItems})
         </Typography>
         <Box display="flex" gap={1}>
           {/* <Button
@@ -142,6 +164,15 @@ export function AttributiView() {
         )}
         columns={columns}
         showCheckbox={false}
+        noOrder={true}
+        serverSidePagination
+        totalItems={totalItems}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
         renderRow={(row, selected) => (
           <AttributoTableRow
             key={row.id}

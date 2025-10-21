@@ -8,7 +8,7 @@ import { GenericTable } from 'src/components/generic-table/GenericTable';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { usePostProdottoAttributo } from 'src/hooks/usePostProdottoAttributo';
 import { useDeleteProdottoAttributo } from 'src/hooks/useDeleteProdottoAttributo';
-import { useGetAttributi } from 'src/hooks/useGetAttributi';
+import { useGetAllAttributi } from 'src/hooks/useGetAttributi';
 
 type ProdottoAttributiDatatableProps = {
   attributi_id?: number[];
@@ -37,7 +37,7 @@ export function ProdottoAttributiDatatable({
   const [selectedProdottoAttributo, setSelectedProdottoAttributo] = useState<any | null>(null);
   const [attributiLocali, setAttributiLocali] = useState<any[]>([]);
 
-  const { data: attributi } = useGetAttributi();
+  const { data: attributi } = useGetAllAttributi();
   const { mutate: deleteProdottoAttributo, isPending: isDeletingProdottoAttributo } =
     useDeleteProdottoAttributo(prodotto);
 

@@ -1,10 +1,9 @@
 import { Box, Typography } from '@mui/material';
-import { useState, useCallback, useEffect } from 'react';
 import { DashboardContent } from 'src/layouts/dashboard/main';
 import { useGetFiles } from 'src/hooks/useGetFiles';
 import { useSnackbar } from 'src/context/SnackbarContext';
 import { GenericTable } from 'src/components/generic-table/GenericTable';
-import { useDebounce } from 'src/hooks/useDebounce';
+import { usePaginatedTable } from 'src/hooks/usePaginatedTable';
 
 import { FileTableRow } from '../file-table-row';
 import { FileUploader } from '../file-uploader';
@@ -20,39 +19,29 @@ const columns = [
 
 export function FilesView() {
   const { showMessage } = useSnackbar();
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchQuery, setSearchQuery] = useState('');
 
-  // Usa l'hook per il debounce
-  const debouncedSearchQuery = useDebounce(searchQuery, 1000);
-
-  // Resetta la pagina quando la ricerca debouncata cambia
-  useEffect(() => {
-    if (debouncedSearchQuery !== undefined) {
-      setPage(0);
-    }
-  }, [debouncedSearchQuery]);
+  // Hook per gestire paginazione, ricerca e debounce
+  const {
+    page,
+    rowsPerPage,
+    searchQuery,
+    debouncedSearchQuery,
+    handlePageChange,
+    handleRowsPerPageChange,
+    handleSearch,
+    resetPage,
+  } = usePaginatedTable({
+    initialPage: 0,
+    initialRowsPerPage: 10,
+    debounceDelay: 1000,
+  });
 
   const { data, isFetching } = useGetFiles(page + 1, rowsPerPage, debouncedSearchQuery);
 
   const handleUploadSuccess = () => {
     showMessage({ text: 'File caricato con successo', type: 'success' });
-    setPage(0); // Torna alla prima pagina dopo l'upload
+    resetPage(); // Torna alla prima pagina dopo l'upload
   };
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (newRowsPerPage: number) => {
-    setRowsPerPage(newRowsPerPage);
-    setPage(0);
-  };
-
-  const handleSearch = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-  }, []);
 
   const files = data?.items ?? [];
   const totalItems = data?.totalItems ?? 0;

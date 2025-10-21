@@ -45,7 +45,7 @@ export function AttributoOpzioneModal({
             onClose={onClose}
             title={title}
             onConfirm={handleConfirm}
-            maxWidth="sm"
+            maxWidth="xs"
         >
            
 

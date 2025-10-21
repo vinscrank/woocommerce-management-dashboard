@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from '@mui/material';
 import { GenericTable } from 'src/components/generic-table/GenericTable';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Column } from '../../user/view/user-view';
 import { DashboardContent } from 'src/layouts/dashboard/main';
 import { ProdottoTableRow } from '../prodotti-table-row';
@@ -10,7 +10,7 @@ import { ProdottoForm } from '../../prodotto/prodotto-form';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { Prodotto } from 'src/types/Prodotto';
 import { useSnackbar } from 'src/context/SnackbarContext';
-import { useDebounce } from 'src/hooks/useDebounce';
+import { usePaginatedTable } from 'src/hooks/usePaginatedTable';
 
 const columns: Column[] = [
   { id: 'id', label: 'ID' },
@@ -27,26 +27,27 @@ const columns: Column[] = [
 ];
 
 export function ProdottiView() {
-  const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Usa l'hook per il debounce
-  const debouncedSearchQuery = useDebounce(searchQuery, 1000);
-
-  // Resetta la pagina quando la ricerca debouncata cambia
-  useEffect(() => {
-    if (debouncedSearchQuery !== undefined) {
-      setPage(1);
-    }
-  }, [debouncedSearchQuery]);
+  // Hook per gestire paginazione, ricerca e debounce
+  const {
+    page,
+    rowsPerPage,
+    searchQuery,
+    debouncedSearchQuery,
+    handlePageChange,
+    handleRowsPerPageChange,
+    handleSearch,
+  } = usePaginatedTable({
+    initialPage: 0,
+    initialRowsPerPage: 25,
+    debounceDelay: 1000,
+  });
 
   const {
     data,
     isFetching,
     isRefetching,
     refetch: refetchProdotti,
-  } = useGetProdotti(page, rowsPerPage, debouncedSearchQuery);
+  } = useGetProdotti(page + 1, rowsPerPage, debouncedSearchQuery);
   const prodotti = data?.items || [];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -148,19 +149,15 @@ export function ProdottiView() {
         isLoading={isFetching || isRefetching}
         data={(prodotti || []) as Array<Prodotto & { id: number }>}
         columns={columns}
+        noOrder={true}
         serverSidePagination
         totalItems={data?.totalItems || 0}
         page={page}
         rowsPerPage={rowsPerPage}
-        onPageChange={(newPage) => setPage(newPage)}
-        onRowsPerPageChange={(newRowsPerPage) => {
-          setRowsPerPage(newRowsPerPage);
-          setPage(1);
-        }}
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
         searchQuery={searchQuery}
-        onSearchChange={(event) => {
-          setSearchQuery(event.target.value);
-        }}
+        onSearchChange={handleSearch}
         renderRow={(row) => (
           <ProdottoTableRow
             refetchProdotti={refetchProdotti}

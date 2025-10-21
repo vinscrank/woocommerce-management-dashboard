@@ -19,7 +19,7 @@ import { InfoLabel } from 'src/components/InfoLabel';
 import { usePutCategoria } from 'src/hooks/usePutCategoria';
 import { usePostCategoria } from 'src/hooks/usePostCategoria';
 import { Iconify } from 'src/components/iconify';
-import { useGetCategories } from 'src/hooks/useGetCategorie';
+import { useGetAllCategories } from 'src/hooks/useGetCategorie';
 import { ca } from 'date-fns/locale';
 import { useUploadCategoriaImmagine } from 'src/hooks/useUploadCategoriaImmagine';
 import { useGetCategoria } from 'src/hooks/useGetCategoria';
@@ -64,7 +64,7 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
   const { mutate: uploadCategoriaImmagine, isPending: isUploading } = useUploadCategoriaImmagine();
   const { convertUrl } = useDevUrl();
 
-  const { data: categorie } = useGetCategories();
+  const { data: categorie } = useGetAllCategories();
 
   const onSubmitForm = async (data: any) => {
     if (categoria) {

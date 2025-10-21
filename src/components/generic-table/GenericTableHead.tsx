@@ -49,7 +49,7 @@ export function GenericTableHead({
             align={headCell.align || 'left'}
             sortDirection={orderBy === headCell.id ? order : false}
           >
-            {headCell.noOrder ? (
+            {noOrder || headCell.noOrder ? (
               headCell.label
             ) : (
               <TableSortLabel

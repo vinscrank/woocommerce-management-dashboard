@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { useState, useEffect, useRef } from 'react';
-import { useGetAttributi } from 'src/hooks/useGetAttributi';
+import { useGetAllAttributi } from 'src/hooks/useGetAttributi';
 import { useDeleteProdottoAttributo } from 'src/hooks/useDeleteProdottoAttributo';
 import { Prodotto } from 'src/types/Prodotto';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
@@ -55,7 +55,7 @@ export function ProdottoAttributoForm({
     isAttributoInterno || prodotto_attributo?.attributo?.is_specifico || false
   );
 
-  const { data: attributi } = useGetAttributi();
+  const { data: attributi } = useGetAllAttributi();
   const { mutate: deleteProdottoAttributo, isPending: isDeleting } =
     useDeleteProdottoAttributo(prodotto);
   const [selectedAttributoId, setSelectedAttributoId] = useState<number | null>(null);
