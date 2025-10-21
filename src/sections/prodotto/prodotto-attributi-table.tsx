@@ -8,6 +8,7 @@ import { GenericTable } from 'src/components/generic-table/GenericTable';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { usePostProdottoAttributo } from 'src/hooks/usePostProdottoAttributo';
 import { useDeleteProdottoAttributo } from 'src/hooks/useDeleteProdottoAttributo';
+import { useGetAttributi } from 'src/hooks/useGetAttributi';
 
 type ProdottoAttributiDatatableProps = {
   attributi_id?: number[];
@@ -20,9 +21,9 @@ type ProdottoAttributiDatatableProps = {
 const columns = [
   { id: 'id', label: 'ID' },
   { id: 'name', label: 'Nome Attributo' },
-  { id: 'abilitato_per_variazioni', label: 'Usato nelle variazioni' },
+  { id: 'variation', label: 'Usato nelle variazioni' },
   { id: 'visibile', label: 'Visibile nella pagina prodotto' },
-   { id: 'options', label: 'Opzioni' },
+  { id: 'options', label: 'Opzioni' },
   { id: 'actions', label: 'Azioni' },
 ];
 
@@ -35,31 +36,13 @@ export function ProdottoAttributiDatatable({
   const [openModal, setOpenModal] = useState(false);
   const [selectedProdottoAttributo, setSelectedProdottoAttributo] = useState<any | null>(null);
   const [attributiLocali, setAttributiLocali] = useState<any[]>([]);
+
+  const { data: attributi } = useGetAttributi();
   const { mutate: deleteProdottoAttributo, isPending: isDeletingProdottoAttributo } =
-    useDeleteProdottoAttributo(prodotto_id as number);
+    useDeleteProdottoAttributo(prodotto);
 
   const handleOpenModal = (attributo: any = null) => {
-    setSelectedProdottoAttributo(
-      attributo
-        ? {
-            ...attributo,
-            prodotto_id,
-  
-          }
-        : {
-            id: null,
-            prodotto_id,
-            
-            attributo: {
-              name: null,
-              is_specifico: false,
-              attributoOpzioni: [],
-            },
-            abilitato_per_variazioni: true,
-            visibile: true,
-            opzioni_id: [],
-          }
-    );
+    setSelectedProdottoAttributo(attributo);
     setOpenModal(true);
   };
 
@@ -69,8 +52,9 @@ export function ProdottoAttributiDatatable({
   };
 
   const { mutate: salvaProdottoAttributo, isPending: isSaving } = usePostProdottoAttributo(
-    prodotto.id,
+    prodotto,
     prodotto?.type,
+    attributi || [],
     () => {
       handleCloseModal();
     }
@@ -135,7 +119,6 @@ export function ProdottoAttributiDatatable({
         maxWidth="md"
         isLoading={isSaving}
       >
-        {JSON.stringify(prodotto.attributes)}
         <ProdottoAttributoForm
           isLoading={isSaving}
           open={openModal}

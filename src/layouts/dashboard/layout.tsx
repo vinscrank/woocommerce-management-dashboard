@@ -23,6 +23,7 @@ import { AccountPopover } from '../components/account-popover';
 import { LanguagePopover } from '../components/language-popover';
 import { NotificationsPopover } from '../components/notifications-popover';
 import { BackToDashboardButton } from 'src/components/BackToDashboardButton';
+import { ThemeSettingsButton } from '../components/theme-settings-button';
 
 // ----------------------------------------------------------------------
 
@@ -92,6 +93,7 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                 {/* <Searchbar /> */}
                 {/* <LanguagePopover data={_langs} /> */}
                 {/* <NotificationsPopover data={_notifications} /> */}
+                <ThemeSettingsButton />
                 <AccountPopover
                   data={[
                     {

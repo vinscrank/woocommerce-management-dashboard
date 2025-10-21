@@ -6,8 +6,8 @@ import { varAlpha } from 'src/theme/styles';
 
 export const baseVars = (theme: Theme) => ({
   // nav
-  '--layout-nav-bg': theme.vars.palette.common.white,
-  '--layout-nav-border-color': varAlpha(theme.vars.palette.grey['500Channel'], 0.08),
+  '--layout-nav-bg': theme.vars.palette.background.paper,
+  '--layout-nav-border-color': varAlpha(theme.vars.palette.grey['500Channel'], 0.12),
   '--layout-nav-zIndex': 1101,
   '--layout-nav-mobile-width': '320px',
   // nav item
@@ -21,4 +21,5 @@ export const baseVars = (theme: Theme) => ({
   '--layout-header-zIndex': 1100,
   '--layout-header-mobile-height': '64px',
   '--layout-header-desktop-height': '72px',
+  '--layout-header-bg': theme.vars.palette.background.paper,
 });

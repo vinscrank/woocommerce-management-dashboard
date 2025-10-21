@@ -18,12 +18,13 @@ import {
   Alert,
   CircularProgress,
   IconButton,
+  Checkbox,
+  ListItemText,
 } from '@mui/material';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Prodotto } from 'src/types/Prodotto';
 import { Iconify } from 'src/components/iconify';
-import { InfoLabel } from 'src/components/InfoLabel';
 import { formatDateTime } from 'src/hooks/use-format-date';
 import { useGetCategories } from 'src/hooks/useGetCategorie';
 import { usePostProdotto } from 'src/hooks/usePostProdotto';
@@ -37,6 +38,7 @@ import { useGetBrands } from 'src/hooks/useGetBrands';
 import { ProdottoAttributiDatatable } from './prodotto-attributi-table';
 import { ProdottoVariazioniDatatable } from './prodotto-variazioni-datatable';
 import { STOCK_ENABLED } from 'src/utils/const';
+import { removeReadOnlyFields } from 'src/utils/prodotto-utils';
 import { CategorieTreeView, CategoryState } from 'src/components/CategorieTreeView';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { NumericFormat } from 'react-number-format';
@@ -128,13 +130,9 @@ export function ProdottoForm({
       description: prodotto?.description || '',
       categories: prodotto?.categories || [],
       tags: prodotto?.tags || [],
-      brand:
-        prodotto?.metaData?.find((meta: any) => meta.key === '_yoast_wpseo_primary_product_brand')
-          ?.value || '',
-      //deleted: prodotto?.deleted || false,
+      brands: prodotto?.brands || [],
       id: prodotto?.id || undefined,
       permalink: prodotto?.permalink || '',
-      //abilitato: prodotto?.abilitato || true,
     },
   });
 
@@ -153,15 +151,14 @@ export function ProdottoForm({
             ? dayjs(prodotto.dateOnSaleTo).format('DD-MM-YYYY')
             : undefined
           : undefined,
+        brands: prodotto.brands || [],
       });
     }
   }, [prodotto, reset, setValue]);
 
   const navigate = useNavigate();
-
   const productType = watch('type');
   const manageStock = watch('manageStock');
-
   const { convertUrl } = useDevUrl();
   const { ProdottoStatus, StockStatus, CatalogVisibility } = useProdottoStatus();
 
@@ -195,7 +192,6 @@ export function ProdottoForm({
   // Funzione helper per costruire la gerarchia delle categorie
   const buildCategoryTree = (categories: Categoria[] | undefined): Categoria[] => {
     if (!categories) return [];
-
     const categoryMap = new Map<number, Categoria>();
     const rootCategories: Categoria[] = [];
 
@@ -205,14 +201,13 @@ export function ProdottoForm({
         categoryMap.set(cat.id, { ...cat, children: [] });
       }
     });
-
     // Seconda passata: costruisci la gerarchia
     categoryMap.forEach((cat) => {
       if (cat.parent && cat.parent !== 0) {
-        // Ha un parent, aggiungilo come child del parent
         const parentCat = categoryMap.get(cat.parent);
-        if (parentCat && parentCat.children) {
-          parentCat.children.push(cat);
+        if (parentCat) {
+          // Ha un parent valido, aggiungilo come child
+          parentCat.children!.push(cat);
         } else {
           // Parent non trovato, mettilo nelle root
           rootCategories.push(cat);
@@ -239,7 +234,7 @@ export function ProdottoForm({
     prodotto?.id as number
   );
 
-  const { mutate: exportProdotto, isPending: isExportLoading } = useExportProdotti();
+  // const { mutate: exportProdotto, isPending: isExportLoading } = useExportProdotti();
   // Gestione upload immagini
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   const [selectedExistingFiles, setSelectedExistingFiles] = useState<Media[]>([]);
@@ -350,7 +345,7 @@ export function ProdottoForm({
         display: 'none', // Rimuovi il bordo default di MUI
       },
       '& .MuiAccordionSummary-root': {
-        backgroundColor: colorMap[title],
+       // backgroundColor: colorMap[title],
         borderRadius: '8px 8px 0 0',
         transition: 'all 0.2s ease-in-out',
         // padding: '12px 24px',
@@ -428,9 +423,12 @@ export function ProdottoForm({
     // Le immagini sono già state preparate e aggiunte al formData
     // tramite setValue('images', ...) nella funzione handleUploadModalConfirm
 
+    // Rimuovi campi read-only prima di inviare
+    const cleanedData = removeReadOnlyFields(formData);
+
     if (prodotto?.id) {
       updateProdotto(
-        { id: prodotto.id.toString(), data: formData },
+        { id: prodotto.id.toString(), data: cleanedData },
         {
           onSuccess: () => {
             resetAllFiles();
@@ -439,7 +437,7 @@ export function ProdottoForm({
         }
       );
     } else {
-      storeProdotto(formData, {
+      storeProdotto(cleanedData, {
         onSuccess: async (prodotto: Prodotto) => {
           resetAllFiles();
           if (onSync) onSync();
@@ -584,35 +582,10 @@ export function ProdottoForm({
       formData.type = 'simple'; // Default a semplice se non specificato
     }
 
-    // Rimuovi campi read-only che WooCommerce genera automaticamente
-    // Questi campi non dovrebbero essere inviati nell'update/create
-    const readOnlyFields = [
-      'permalink',
-      'link',
-      'dateCreated',
-      'dateCreatedGmt',
-      'dateModified',
-      'dateModifiedGmt',
-      'createdAt',
-      'createdAtGmt',
-      'updatedAt',
-      'updatedAtGmt',
-      'onSale',
-      'purchasable',
-      'totalSales',
-      'averageRating',
-      'ratingCount',
-      'relatedIds',
-      'backordersAllowed',
-      'backordered',
-      'brand', // Il brand viene passato nei metaData
-    ];
-
-    readOnlyFields.forEach((field) => {
-      if (formData.hasOwnProperty(field)) {
-        delete formData[field];
-      }
-    });
+    // Assicurati che brands sia nel formato corretto (array di oggetti con solo id)
+    if (formData.brands && Array.isArray(formData.brands)) {
+      formData.brands = formData.brands.map((brand: any) => ({ id: brand.id }));
+    }
 
     // Pulisci i metaData rimuovendo quelli con valori vuoti
     if (formData.metaData && Array.isArray(formData.metaData)) {
@@ -648,7 +621,6 @@ export function ProdottoForm({
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
-
     if (active.id !== over.id) {
       const currentImages = prodotto?.images || [];
       const oldIndex = currentImages.findIndex((img) => img.src === active.id);
@@ -657,15 +629,10 @@ export function ProdottoForm({
       if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== -1 && newIndex !== -1) {
         // Crea un nuovo array di immagini con l'ordine aggiornato usando arrayMove
         const reorderedImages = arrayMove(currentImages, oldIndex, newIndex);
-
-        // Aggiorna il campo images nel form
         setValue('images', reorderedImages as any);
-
-        // Salva automaticamente il prodotto per aggiornare l'ordine delle immagini
         if (prodotto?.id) {
           const formData = watch(); // Ottieni tutti i dati del form
           const cleanedFormData = cleanEmptyFields(formData);
-
           updateProdotto(
             { id: prodotto.id.toString(), data: cleanedFormData },
             {
@@ -679,18 +646,10 @@ export function ProdottoForm({
     }
   };
 
-  // Aggiungi questo useEffect per gestire l'importazione automatica
-
-  //const { data: existingFiles, isFetching: isFetchingFiles } = useGetFiles();
-
   const handleUploadModalConfirm = async () => {
-    // Prepara le immagini per l'API
-    // Combina le immagini esistenti del prodotto con le nuove selezionate
     const existingImages = prodotto?.images || [];
-
-    // Prepara le nuove immagini selezionate nel formato corretto
     const newImagesForApi = selectedFiles.map((file, index) => ({
-      id: file.id, // ID dell'immagine nella libreria media
+      id: file.id,
       name: file.slug || file.name,
       src: file.sourceUrl || file.src,
       alt: file.alt || file.altText || '',
@@ -701,18 +660,10 @@ export function ProdottoForm({
     const existingIds = new Set(existingImages.map((img) => img.id));
     const filteredNewImages = newImagesForApi.filter((img) => !existingIds.has(img.id));
     const combinedImages = [...existingImages, ...filteredNewImages];
-
-    // Aggiorna il campo images del form
     setValue('images', combinedImages as any);
-
-    // Salva immediatamente il prodotto con le nuove immagini
     if (prodotto?.id) {
-      const formData = watch(); // Ottieni tutti i dati del form
-
-      // Assicurati che le immagini aggiornate siano nel formData
+      const formData = watch();
       formData.images = combinedImages;
-
-      // Pulisci i campi vuoti prima di inviare
       const cleanedFormData = cleanEmptyFields(formData);
 
       updateProdotto(
@@ -730,7 +681,6 @@ export function ProdottoForm({
         }
       );
     } else {
-      // Se non c'è un prodotto esistente, chiudi solo la modale
       setIsUploadModalOpen(false);
       setSelectedFiles([]);
     }
@@ -845,6 +795,7 @@ export function ProdottoForm({
                       size="small"
                       variant="outlined"
                       color="primary"
+                      
                     />
                     <Chip
                       icon={<Iconify icon="solar:pen-bold" width={18} />}
@@ -1049,38 +1000,36 @@ export function ProdottoForm({
 
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
-                <InputLabel id="brand-label">Brand</InputLabel>
+                <InputLabel id="brands-label">Brands</InputLabel>
                 <Select
-                  labelId="brand-label"
-                  id="brand"
-                  label="Brand"
-                  value={watch('brand') || ''}
+                  labelId="brands-label"
+                  id="brands"
+                  label="Brands"
+                  multiple
+                  value={watch('brands')?.map((b) => b.id?.toString()) || []}
                   onChange={(e) => {
-                    const selectedId = e.target.value as string;
-                    setValue('brand', selectedId as any);
-
-                    // Aggiorna i metaData con il brand selezionato
-                    setMetaData((prev) => {
-                      const filtered = prev.filter(
-                        (meta) => meta.key !== '_yoast_wpseo_primary_product_brand'
-                      );
-                      if (selectedId) {
-                        return [
-                          ...filtered,
-                          {
-                            key: '_yoast_wpseo_primary_product_brand',
-                            name: '_yoast_wpseo_primary_product_brand',
-                            value: selectedId,
-                          },
-                        ];
-                      }
-                      return filtered;
-                    });
+                    const selectedIds = e.target.value as string[];
+                    const selectedBrands = selectedIds
+                      .map((id) => brands?.find((b) => b.id?.toString() === id))
+                      .filter(Boolean)
+                      .map((brand) => ({
+                        id: brand!.id,
+                        name: brand!.name,
+                        slug: brand!.slug,
+                      }));
+                    setValue('brands', selectedBrands as any);
                   }}
+                  renderValue={(selected: string[]) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value: string) => (
+                        <Chip
+                          key={value}
+                          label={brands?.find((b) => b.id?.toString() === value)?.name || value}
+                        />
+                      ))}
+                    </Box>
+                  )}
                 >
-                  <MenuItem value="">
-                    <em>Nessun brand</em>
-                  </MenuItem>
                   {brands?.map((brand) => (
                     <MenuItem key={brand.id} value={brand.id?.toString() || ''}>
                       {brand.name}
@@ -1092,7 +1041,6 @@ export function ProdottoForm({
 
             <Grid item xs={12} md={6} mt={1}>
               <Button
-                fullWidth
                 variant="outlined"
                 onClick={() => setIsCategorieModalOpen(true)}
                 startIcon={<Iconify icon="eva:list-fill" />}
@@ -1322,15 +1270,9 @@ export function ProdottoForm({
                     <Grid item xs={12}>
                       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                         <Button
-                          variant="contained"
+                          variant="outlined"
                           onClick={() => setIsUploadModalOpen(true)}
                           startIcon={<Iconify icon="eva:cloud-upload-fill" />}
-                          sx={{
-                            bgcolor: selectedFiles.length > 0 ? 'success.main' : 'primary.main',
-                            '&:hover': {
-                              bgcolor: selectedFiles.length > 0 ? 'success.dark' : 'primary.dark',
-                            },
-                          }}
                         >
                           Carica immagini
                         </Button>
@@ -1548,118 +1490,6 @@ export function ProdottoForm({
               />
             </Grid>
 
-            {/* Sezione MetaData - Solo SEO (Title e Description) */}
-            {prodotto?.id &&
-              metaData &&
-              metaData.length > 0 &&
-              (() => {
-                // Filtra solo i metaData SEO che vogliamo mostrare
-                const seoMetaData = metaData.filter((meta) => {
-                  const metaKey = meta.key || meta.name || '';
-                  return (
-                    metaKey === '_yoast_wpseo_title' ||
-                    metaKey === 'yoast_wpseo_title' ||
-                    metaKey === '_yoast_wpseo_metadesc' ||
-                    metaKey === 'yoast_wpseo_metadesc'
-                  );
-                });
-
-                if (seoMetaData.length === 0) return null;
-
-                return (
-                  <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
-                    <Accordion sx={getAccordionStyles('SEO')} defaultExpanded={false}>
-                      <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
-                        <Typography>SEO - Meta Title e Description</Typography>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Grid container spacing={2}>
-                          {seoMetaData.map((meta, seoIndex) => {
-                            const metaKey = meta.key || meta.name || '';
-
-                            // Label leggibile
-                            const getLabel = (key: string) => {
-                              if (key.includes('title')) return 'Meta Title';
-                              if (key.includes('desc')) return 'Meta Description';
-                              return 'Valore';
-                            };
-
-                            // Placeholder personalizzato
-                            const getPlaceholder = (key: string) => {
-                              if (key.includes('title'))
-                                return 'Inserisci il Meta Title (max 60 caratteri consigliati)';
-                              if (key.includes('desc'))
-                                return 'Inserisci la Meta Description (max 160 caratteri consigliati)';
-                              return 'Inserisci valore';
-                            };
-
-                            // Description è sempre textarea
-                            const isDescription = metaKey.toLowerCase().includes('desc');
-
-                            // Funzione per aggiornare/creare metaData
-                            const handleMetaChange = (newValue: string) => {
-                              const newMetaData = [...metaData];
-                              const existingIndex = newMetaData.findIndex(
-                                (m) => (m.key || m.name) === metaKey
-                              );
-
-                              if (existingIndex >= 0) {
-                                // Aggiorna esistente
-                                newMetaData[existingIndex].value = newValue;
-                              } else {
-                                // Aggiungi nuovo
-                                newMetaData.push({
-                                  key: metaKey,
-                                  name: metaKey,
-                                  value: newValue,
-                                });
-                              }
-                              setMetaData(newMetaData);
-                            };
-
-                            return (
-                              <Grid item xs={12} key={meta.id || seoIndex}>
-                                <Box
-                                  sx={{
-                                    p: 2,
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                    borderRadius: 1,
-                                    bgcolor: 'background.neutral',
-                                  }}
-                                >
-                                  {isDescription ? (
-                                    <TextField
-                                      fullWidth
-                                      multiline
-                                      rows={3}
-                                      label={getLabel(metaKey)}
-                                      value={meta.value || ''}
-                                      onChange={(e) => handleMetaChange(e.target.value)}
-                                      placeholder={getPlaceholder(metaKey)}
-                                      helperText={`${meta.value?.length || 0} caratteri`}
-                                    />
-                                  ) : (
-                                    <TextField
-                                      fullWidth
-                                      label={getLabel(metaKey)}
-                                      value={meta.value || ''}
-                                      onChange={(e) => handleMetaChange(e.target.value)}
-                                      placeholder={getPlaceholder(metaKey)}
-                                      helperText={`${meta.value?.length || 0} caratteri`}
-                                    />
-                                  )}
-                                </Box>
-                              </Grid>
-                            );
-                          })}
-                        </Grid>
-                      </AccordionDetails>
-                    </Accordion>
-                  </Grid>
-                );
-              })()}
-
             <Grid item xs={12} pt={0} sx={{ paddingTop: '0px !important' }}>
               {/* Resto del contenuto del form */}
               {prodotto?.id && (
@@ -1699,7 +1529,7 @@ export function ProdottoForm({
                       </Box>
 
                       <Box>
-                        {prodotto.status !== 'trash' && (
+                        {/* {prodotto.status !== 'trash' && (
                           <>
                             <Button
                               variant="contained"
@@ -1711,7 +1541,7 @@ export function ProdottoForm({
                               Esporta prodotto
                             </Button>
                           </>
-                        )}
+                        )} */}
                         {prodotto.status === 'trash' && (
                           <Box display="flex" alignItems="center" pt={2}>
                             Nessuna azione disponibile
@@ -1729,13 +1559,6 @@ export function ProdottoForm({
 
       {prodotto?.id && (
         <Box mt={4} id="attributi-explode">
-          {/* <Alert severity="warning" sx={{ mb: 3 }}>
-            <Typography align="center">
-              <b>Salvare</b> le modifiche al prodotto prima di gestire Attributi e Variazioni
-            </Typography>
-          </Alert> */}
-
-          {JSON.stringify(prodotto?.attributes)}
           <Box mt={3}>
             <ProdottoAttributiDatatable
               isLoading={loading}

@@ -12,7 +12,7 @@ export function BackToDashboardButton() {
 
     return (
         <Button
-            variant="outlined"
+            variant="text"
             color="primary"
             onClick={() => navigate('/')}
             startIcon={<Iconify icon="eva:arrow-back-fill" />}

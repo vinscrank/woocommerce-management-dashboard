@@ -33,7 +33,7 @@ export function AttributoAutocomplete({
           onChange={(_, newValue) => {
             const values = newValue.map((item) => {
               if (typeof item === 'string') return item;
-              if (typeof item === 'object') return item?.slug || item?.name || String(item);
+              if (typeof item === 'object') return item?.name || item?.slug || String(item);
               return String(item);
             });
             const uniqueValues = [...new Set(values)];

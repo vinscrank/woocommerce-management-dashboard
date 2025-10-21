@@ -50,41 +50,26 @@ export function ProdottoAttributoTableRow({
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell>{row.id }</TableCell>
+        <TableCell>{row.id}</TableCell>
         <TableCell>
-          {row.attributo?.is_specifico ? (
-            <Tooltip title="Attributo Interno" arrow>
-              <Iconify
-                icon="eva:info-fill"
-                sx={{
-                  verticalAlign: 'middle',
-                  mr: 1,
-                  width: 16,
-                  height: 16,
-                  color: 'info.main',
-                }}
-              />
-            </Tooltip>
-          ) : (
-            <Tooltip title="Attributo Standard" arrow>
-              <Iconify
-                icon="eva:checkmark-circle-2-fill"
-                sx={{
-                  mr: 1,
-                  width: 16,
-                  height: 16,
-                  color: 'success.main',
-                }}
-              />
-            </Tooltip>
-          )}
-
-          {row.id || '-'}
+         
           {row.name || '-'}
         </TableCell>
 
-        <TableCell>{row.variation ? 'SI' : 'NO'}</TableCell>
-        <TableCell>{row.visible ? 'SI' : 'NO'}</TableCell>
+        <TableCell>
+          {row.variation ? (
+            <Iconify icon="eva:checkmark-circle-2-fill" />
+          ) : (
+            <Iconify icon="eva:close-circle-fill" />
+          )}
+        </TableCell>
+        <TableCell>
+          {row.visible ? (
+            <Iconify icon="eva:checkmark-circle-2-fill" />
+          ) : (
+            <Iconify icon="eva:close-circle-fill" />
+          )}
+        </TableCell>
         <TableCell>
           {row.options?.map((opzione: string) => (
             <Chip key={opzione} label={opzione} size="small" sx={{ mr: 0.5, mb: 0.5 }} />

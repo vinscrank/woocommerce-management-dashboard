@@ -16,9 +16,9 @@ import {
   Autocomplete,
 } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGetAttributi } from 'src/hooks/useGetAttributi';
-//import { useDeleteProdottoAttributo } from 'src/hooks/useDeleteProdottoAttributo';
+import { useDeleteProdottoAttributo } from 'src/hooks/useDeleteProdottoAttributo';
 import { Prodotto } from 'src/types/Prodotto';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { useGetAttributoOpzioni } from 'src/hooks/useGetAttributoOpzioni';
@@ -48,14 +48,18 @@ export function ProdottoAttributoForm({
   prodotto,
   isLoading = false,
 }: ProdottoAttributoFormProps) {
+  // Determina se è un attributo interno: se esiste ma non ha id (o ha id=0), è interno
+  const isAttributoInterno =
+    prodotto_attributo && (!prodotto_attributo.id || prodotto_attributo.id === 0);
   const [isSpecifico, setIsSpecifico] = useState(
-    prodotto_attributo?.attributo?.is_specifico || false
+    isAttributoInterno || prodotto_attributo?.attributo?.is_specifico || false
   );
 
   const { data: attributi } = useGetAttributi();
-  // const { mutate: deleteProdottoAttributo, isPending: isDeleting } =
-  //   useDeleteProdottoAttributo(prodotto_id);
+  const { mutate: deleteProdottoAttributo, isPending: isDeleting } =
+    useDeleteProdottoAttributo(prodotto);
   const [selectedAttributoId, setSelectedAttributoId] = useState<number | null>(null);
+  const previousAttributoIdRef = useRef<number | null>(null);
   const { data: attributoOpzioniFromAPI } = useGetAttributoOpzioni(selectedAttributoId || 0);
 
   // Trova l'attributo selezionato in prodotto.attributes per prendere le sue opzioni
@@ -64,62 +68,85 @@ export function ProdottoAttributoForm({
   );
 
   // PRIORITÀ:
-  // 1. Se l'attributo è già nel prodotto, usa prodotto.attributes[].options (stringhe: ["L", "M"])
-  // 2. Altrimenti usa le opzioni dall'API /terms (oggetti: [{id, name, slug}, ...])
-  const attributeOptions = (selectedAttributeFromProduct?.options ||
-    attributoOpzioniFromAPI ||
+  // 1. Se l'attributo è già nel prodotto E ci sono opzioni dall'API, usa le opzioni dall'API
+  // 2. Altrimenti usa le opzioni già salvate nel prodotto
+  // 3. Altrimenti array vuoto
+  // In questo modo quando modifichi puoi sempre aggiungere altre opzioni disponibili
+  const attributeOptions = (attributoOpzioniFromAPI ||
+    selectedAttributeFromProduct?.options ||
     []) as any;
 
   const { register, handleSubmit, control, watch, setValue, reset } = useForm<any>({
     defaultValues: {
       id: prodotto_attributo?.id || null,
-      attributo_id: prodotto_attributo?.attributo_id || '',
-      attributo: {
-        name: prodotto_attributo?.attributo?.name || '',
-        is_specifico: prodotto_attributo?.attributo?.is_specifico || false,
-        attributoOpzioni: prodotto_attributo?.attributo?.attributoOpzioni || [],
-      },
-      opzioni_id: prodotto_attributo?.opzioni_id || [],
-      abilitato_per_variazioni:
-        prodottoType === 'simple' ? false : prodotto_attributo?.abilitato_per_variazioni || false,
-      visibile: prodotto_attributo?.visibile || true,
+      name: prodotto_attributo?.name || '',
+      options: prodotto_attributo?.options || [],
+      visible: prodotto_attributo?.visible ?? true,
+      variation: prodotto_attributo?.variation ?? true,
       prodotto_id: prodotto_id,
       position: prodotto_attributo?.position || null,
+      attributo: {
+        name: '',
+        is_specifico: false,
+      },
     },
   });
 
   useEffect(() => {
     if (prodotto_attributo) {
-      reset(prodotto_attributo);
+      reset({
+        ...prodotto_attributo,
+        options: prodotto_attributo.options || [],
+        visible: prodotto_attributo.visible !== undefined ? prodotto_attributo.visible : true,
+        variation: prodotto_attributo.variation !== undefined ? prodotto_attributo.variation : true,
+        attributo: {
+          name: isAttributoInterno ? prodotto_attributo.name : '',
+          is_specifico: isAttributoInterno,
+        },
+      });
     }
-  }, [prodotto_attributo]);
+  }, [prodotto_attributo, reset, isAttributoInterno]);
 
   // Effetto per l'inizializzazione all'apertura della modale
   useEffect(() => {
-    if (open && prodotto_attributo?.attributo_id) {
-      setSelectedAttributoId(Number(prodotto_attributo.attributo_id));
-    } else if (open && !prodotto_attributo?.id) {
+    if (open && prodotto_attributo) {
+      // Imposta l'ID dell'attributo se esiste (sia in creazione che in modifica)
+      const attrId = prodotto_attributo.id || prodotto_attributo.attributo_id;
+      if (attrId) {
+        setSelectedAttributoId(Number(attrId));
+        previousAttributoIdRef.current = Number(attrId);
+      }
+    } else if (open && !prodotto_attributo) {
       // Reset quando apri per nuovo attributo
       setSelectedAttributoId(null);
+      previousAttributoIdRef.current = null;
     }
   }, [open, prodotto_attributo]);
 
   // Reset opzioni quando cambia l'attributo selezionato
   useEffect(() => {
-    if (selectedAttributoId && !prodotto_attributo?.id) {
-      // Se è un nuovo attributo (non in modifica), resetta le opzioni
+    // Se è un nuovo attributo (non in modifica) e l'attributo selezionato è cambiato
+    if (
+      !prodotto_attributo &&
+      selectedAttributoId &&
+      previousAttributoIdRef.current !== null &&
+      previousAttributoIdRef.current !== selectedAttributoId
+    ) {
+      // Resetta le opzioni quando cambia l'attributo
       setValue('options', []);
     }
+    // Aggiorna il ref con il nuovo valore
+    previousAttributoIdRef.current = selectedAttributoId;
   }, [selectedAttributoId, prodotto_attributo, setValue]);
 
   const handleDelete = () => {
-    if (prodotto_attributo?.id && onDelete) {
+    if (prodotto_attributo && onDelete) {
       if (window.confirm('Sei sicuro di voler eliminare questo attributo dal prodotto?')) {
-        // deleteProdottoAttributo(prodotto_attributo, {
-        //   onSuccess: () => {
-        //     onDelete(prodotto_attributo);
-        //   },
-        // });
+        deleteProdottoAttributo(prodotto_attributo, {
+          onSuccess: () => {
+            onDelete(prodotto_attributo);
+          },
+        });
       }
     }
   };
@@ -128,17 +155,57 @@ export function ProdottoAttributoForm({
     setSelectedAttributoId(Number(attributoId));
   };
 
+  // Gestisce il submit normalizzando i dati per attributi interni
+  const handleFormSubmit = (data: any) => {
+    // Determina se è un attributo interno:
+    // 1. Se c'è data.attributo?.is_specifico, è un nuovo attributo interno
+    // 2. Se stiamo modificando un attributo interno esistente (isAttributoInterno)
+    const isInternoSubmit = data.attributo?.is_specifico || isAttributoInterno;
+
+    if (isInternoSubmit) {
+      // Per nuovo attributo interno, prendi il nome da data.attributo.name
+      // Per modifica attributo interno esistente, prendi il nome da data.name
+      let nomeAttributo = data.attributo?.name || data.name;
+
+      // Valida che ci sia il nome dell'attributo interno
+      if (!nomeAttributo || nomeAttributo.trim() === '') {
+        alert("Inserisci il nome dell'attributo interno");
+        return;
+      }
+
+      const normalizedData = {
+        ...data,
+        id: 0, // Gli attributi interni non hanno un ID globale
+        name: nomeAttributo.trim(),
+        options: data.options || [],
+        visible: data.visible ?? true,
+        variation: data.variation ?? true,
+        position: data.position || null,
+      };
+      onSubmit(normalizedData);
+    } else {
+      // Per gli attributi globali, valida che sia stato selezionato un attributo
+      if (!data.id) {
+        alert('Seleziona un attributo dalla lista');
+        return;
+      }
+      // Invia i dati così come sono
+      onSubmit(data);
+    }
+  };
+
   return (
     <GenericModal
       open={open}
       onClose={onClose}
-      title={prodotto_attributo?.id ? `Attributo: ${prodotto_attributo.name}` : 'Nuovo Attributo'}
+      title={prodotto_attributo ? `Attributo: ${prodotto_attributo.name}` : 'Nuovo Attributo'}
       maxWidth="md"
-      onConfirm={handleSubmit(onSubmit)}
+      onConfirm={handleSubmit(handleFormSubmit)}
     >
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
         <Grid container spacing={2}>
-          {!prodotto_attributo?.id && (
+          {/* Mostra lo switch solo quando si crea un nuovo attributo (non in modifica) */}
+          {!prodotto_attributo && (
             <Grid item xs={12}>
               <FormControlLabel
                 control={
@@ -171,8 +238,10 @@ export function ProdottoAttributoForm({
                   control={control}
                   render={({ field }) => (
                     <Select
+                      disabled={prodotto_attributo?.id}
                       {...field}
                       label="Attributo"
+                      value={prodotto_attributo?.id || ''}
                       onChange={(e) => {
                         field.onChange(e);
                         handleAttributoChange(e.target.value);
@@ -200,7 +269,7 @@ export function ProdottoAttributoForm({
                 required
                 fullWidth
                 label="Nome attributo interno"
-                disabled={!!prodotto_attributo?.id}
+                disabled={!!prodotto_attributo}
                 {...register('attributo.name')}
               />
             </Grid>
@@ -225,12 +294,12 @@ export function ProdottoAttributoForm({
               <FormControlLabel
                 control={
                   <Controller
-                    name="abilitato_per_variazioni"
+                    name="variation"
                     control={control}
                     render={({ field }) => <Switch {...field} checked={field.value} />}
                   />
                 }
-                label="Attributo usato per variazioni"
+                label="Usato nelle variazioni"
               />
             </Grid>
           )}
@@ -249,31 +318,11 @@ export function ProdottoAttributoForm({
           </Grid>
 
           <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Controller
-                  name="variation"
-                  control={control}
-                  render={({ field }) => <Switch {...field} checked={field.value} />}
-                />
-              }
-              label="Usato nelle variazioni"
-            />
-          </Grid>
-
-          <Grid item xs={12}>
             <Box display="flex" justifyContent="space-between">
-              {prodotto_attributo?.id && (
-                <Button
-                  //disabled={isDeleting}
-                  variant="contained"
-                  color="error"
-                  onClick={handleDelete}
-                >
-                  {/* {isDeleting ? 'Elimina attributo...' : 'Elimina attributo'} */}
-                  Elimina attributo
-                </Button>
-              )}
+              <Button disabled={isLoading} variant="contained" color="error" onClick={handleDelete}>
+                {isLoading ? 'Elimina attributo...' : 'Elimina attributo'}
+              </Button>
+
               <Button disabled={isLoading} variant="contained" color="primary" type="submit">
                 {isLoading ? 'Salva attributo...' : 'Salva attributo'}
               </Button>

@@ -7,7 +7,7 @@ import { API_BASE_PREFIX } from 'src/utils/const';
 
 
 const fetchCategories = async (ecommerceId: number | null): Promise<Categoria[]> => {
-    const { data } = await axiosInstance.get(`${API_BASE_PREFIX}/${ecommerceId}/products/categories`);
+    const { data } = await axiosInstance.get(`${API_BASE_PREFIX}/${ecommerceId}/products/categories?perPage=100`);
     return data.data.items;
 };
 

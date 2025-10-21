@@ -25,6 +25,7 @@ html {
   height: 100%;
   -webkit-overflow-scrolling: touch;
 }
+
 body,
 #root,
 #root__layout {
@@ -33,24 +34,282 @@ body,
   min-height: 100%;
   flex-direction: column;
 }
+
 img {
   max-width: 100%;
   vertical-align: middle;
 }
+
 ul {
   margin: 0;
   padding: 0;
   list-style-type: none;
 }
+
 input[type='number'] {
   -moz-appearance: textfield;
   appearance: none;
 }
+
 input[type='number']::-webkit-outer-spin-button {
   margin: 0;
   -webkit-appearance: none;
 }
+
 input[type='number']::-webkit-inner-spin-button {
   margin: 0;
   -webkit-appearance: none;
+}
+
+/** **************************************
+* Theme Customization
+*************************************** */
+:root {
+  --custom-primary-main: #1877F2;
+  --custom-primary-light: #73BAFB;
+  --custom-primary-dark: #0C44AE;
+  --custom-secondary-main: #8E33FF;
+  --custom-secondary-light: #C684FF;
+  --custom-secondary-dark: #5119B7;
+  --custom-border-radius: 8px;
+}
+
+/* Applica il colore primario personalizzato */
+.MuiButton-containedPrimary,
+.MuiChip-colorPrimary,
+.MuiSwitch-switchBase.Mui-checked,
+.MuiFab-primary {
+  background-color: var(--custom-primary-main) !important;
+}
+
+.MuiButton-containedPrimary:hover {
+  background-color: var(--custom-primary-dark) !important;
+}
+
+.MuiButton-outlinedPrimary {
+  color: var(--custom-primary-main) !important;
+  border-color: var(--custom-primary-main) !important;
+}
+
+.MuiButton-textPrimary {
+  color: var(--custom-primary-main) !important;
+}
+
+/* Colori secondari */
+.MuiButton-containedSecondary {
+  background-color: var(--custom-secondary-main) !important;
+}
+
+.MuiButton-containedSecondary:hover {
+  background-color: var(--custom-secondary-dark) !important;
+}
+
+/* Bordi arrotondati personalizzati */
+.MuiButton-root,
+.MuiPaper-root,
+.MuiCard-root,
+.MuiTextField-root .MuiOutlinedInput-root,
+.MuiChip-root {
+  border-radius: var(--custom-border-radius) !important;
+}
+
+/* Modalità compatta */
+body.compact-mode .MuiButton-root {
+  padding: 6px 12px !important;
+}
+
+body.compact-mode .MuiCard-root {
+  padding: 12px !important;
+}
+
+body.compact-mode .MuiTableCell-root {
+  padding: 8px !important;
+}
+
+/* Dark mode enhancements */
+[data-mui-color-scheme='dark'] {
+  color-scheme: dark;
+}
+
+[data-mui-color-scheme='dark'] .MuiPaper-root {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05));
+}
+
+/* Assicurati che le icone siano visibili in dark mode */
+[data-mui-color-scheme='dark'] .MuiSvgIcon-root {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+/* Migliora il contrasto per i testi in dark mode */
+[data-mui-color-scheme='dark'] .MuiTypography-root {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+/* Sidebar border in dark mode */
+[data-mui-color-scheme='dark'] .layout__nav {
+  border-right-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Header in dark mode */
+[data-mui-color-scheme='dark'] .layout__header {
+  backdrop-filter: blur(8px);
+  background-color: rgba(20, 26, 33, 0.8) !important;
+}
+
+/* Migliora i bordi in dark mode */
+[data-mui-color-scheme='dark'] .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.23) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiDivider-root {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Chip styling in dark mode */
+[data-mui-color-scheme='dark'] .MuiChip-outlined {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiChip-outlinedPrimary {
+  border-color: #73BAFB !important;
+  color: #D0ECFE !important;
+  background-color: rgba(115, 186, 251, 0.08) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiChip-outlinedPrimary .MuiChip-icon {
+  color: #73BAFB !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiChip-outlinedSecondary {
+  border-color: #C684FF !important;
+  color: #EFD6FF !important;
+  background-color: rgba(198, 132, 255, 0.08) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiChip-outlinedSuccess {
+  border-color: #77ED8B !important;
+  color: #D3FCD2 !important;
+  background-color: rgba(119, 237, 139, 0.08) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiChip-outlinedError {
+  border-color: #FFAC82 !important;
+  color: #FFE9D5 !important;
+  background-color: rgba(255, 172, 130, 0.08) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiChip-outlinedWarning {
+  border-color: #FFD666 !important;
+  color: #FFF5CC !important;
+  background-color: rgba(255, 214, 102, 0.08) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiChip-outlinedInfo {
+  border-color: #61F3F3 !important;
+  color: #CAFDF5 !important;
+  background-color: rgba(97, 243, 243, 0.08) !important;
+}
+
+/* Chip filled in dark mode */
+[data-mui-color-scheme='dark'] .MuiChip-filled {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiChip-filledPrimary {
+  background-color: var(--custom-primary-main) !important;
+  color: #FFFFFF !important;
+}
+
+/* Icone dentro i Chip in dark mode */
+[data-mui-color-scheme='dark'] .MuiChip-icon {
+  color: inherit !important;
+  opacity: 1;
+}
+
+/* Light mode - Migliora anche il light mode */
+[data-mui-color-scheme='light'] .MuiChip-outlined {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+[data-mui-color-scheme='light'] .MuiChip-outlinedPrimary {
+  border-color: var(--custom-primary-main) !important;
+  color: var(--custom-primary-main) !important;
+  background-color: rgba(24, 119, 242, 0.08) !important;
+}
+
+[data-mui-color-scheme='light'] .MuiChip-outlinedPrimary .MuiChip-icon {
+  color: var(--custom-primary-main) !important;
+}
+
+[data-mui-color-scheme='light'] .MuiChip-outlinedSecondary {
+  border-color: var(--custom-secondary-main) !important;
+  color: var(--custom-secondary-main) !important;
+  background-color: rgba(142, 51, 255, 0.08) !important;
+}
+
+[data-mui-color-scheme='light'] .MuiChip-icon {
+  opacity: 1;
+}
+
+/* Modali (Dialog) in dark mode */
+[data-mui-color-scheme='dark'] .MuiDialog-paper {
+  background-color: #1C252E !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.8),
+    0 12px 24px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)) !important;
+}
+
+/* Header delle modali in dark mode */
+[data-mui-color-scheme='dark'] .MuiDialogTitle-root {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Content delle modali in dark mode */
+[data-mui-color-scheme='dark'] .MuiDialogContent-root {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Actions delle modali in dark mode */
+[data-mui-color-scheme='dark'] .MuiDialogActions-root {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Backdrop delle modali in dark mode - più scuro */
+[data-mui-color-scheme='dark'] .MuiBackdrop-root {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Paper elements in dark mode - migliora tutti i paper */
+[data-mui-color-scheme='dark'] .MuiPaper-elevation1 {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiPaper-elevation2 {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiPaper-elevation3 {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiPaper-elevation4 {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.65) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiPaper-elevation8 {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Popover e Menu in dark mode */
+[data-mui-color-scheme='dark'] .MuiPopover-paper,
+[data-mui-color-scheme='dark'] .MuiMenu-paper {
+  background-color: #1C252E !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.1) !important;
 }
