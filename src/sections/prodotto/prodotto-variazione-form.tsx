@@ -72,7 +72,10 @@ export function ProdottoVariazioneForm({
   );
 
   const { mutate: deleteVariazione, isPending: isDeleteLoading } = useDeleteVariazione(prodotto_id);
-  const { data: variazioneSelezionata } = useGetVariazione(prodotto_id, variazione?.id);
+  const { data: variazioneSelezionata, isLoading: isLoadingVariazione } = useGetVariazione(
+    prodotto_id,
+    variazione?.id
+  );
   const stockStati = useGetStockStati();
 
   useEffect(() => {
@@ -80,14 +83,21 @@ export function ProdottoVariazioneForm({
       if (open) {
         try {
           if (variazione && variazioneSelezionata && prodotto) {
-            // Modifica variazione esistente
             // Arricchisci gli attributi con le opzioni disponibili dal prodotto
             const attributiArricchiti =
               variazioneSelezionata.attributes?.map((varAttr: any) => {
                 // Trova l'attributo corrispondente nel prodotto
-                const prodottoAttr = prodotto.attributes?.find(
-                  (pAttr: any) => pAttr.id === varAttr.id || pAttr.name === varAttr.name
-                );
+                // Per attributi interni (id=0), usa SOLO il nome
+                // Per attributi globali (id>0), usa ID o nome come fallback
+                const prodottoAttr = prodotto.attributes?.find((pAttr: any) => {
+                  if (!varAttr.id || varAttr.id === 0) {
+                    // Attributo interno: cerca solo per nome
+                    return pAttr.name === varAttr.name;
+                  } else {
+                    // Attributo globale: cerca per ID o nome
+                    return pAttr.id === varAttr.id || pAttr.name === varAttr.name;
+                  }
+                });
 
                 return {
                   id: varAttr.id || 0,
@@ -97,10 +107,22 @@ export function ProdottoVariazioneForm({
                 };
               }) || [];
 
-            reset({
+            const formValues = {
               ...variazioneSelezionata,
               attributes: attributiArricchiti,
-            });
+              // Se lo SKU è uguale a quello del prodotto padre, non impostarlo (lascialo vuoto per ereditare)
+              sku: variazioneSelezionata.sku === prodotto.sku ? '' : variazioneSelezionata.sku,
+              // Gestisci manageStock: converte in booleano (true se è esplicitamente true, false altrimenti)
+              manageStock:
+                !!(variazioneSelezionata.manageStock as any) &&
+                (variazioneSelezionata.manageStock as any) !== 'parent',
+              // stockQuantity: usa valore della variazione o 0
+              stockQuantity: Number(variazioneSelezionata.stockQuantity) || 0,
+              // stockStatus: usa valore della variazione o instock
+              stockStatus: String(variazioneSelezionata.stockStatus || 'instock'),
+            };
+
+            reset(formValues);
           } else if (!variazione && prodotto) {
             // Nuova variazione - popola gli attributi dal prodotto
             const attributiVariazione =
@@ -154,9 +176,10 @@ export function ProdottoVariazioneForm({
         manageStock: data.manageStock ? true : 'parent',
       };
 
-      // Aggiungi campi opzionali solo se presenti
-      if (data.sku) {
-        formattedData.sku = data.sku;
+      // Aggiungi campi opzionali solo se presenti e diversi da quelli del prodotto padre
+      // SKU: invia solo se presente E diverso da quello del padre (altrimenti eredita)
+      if (data.sku && data.sku.trim() !== '' && data.sku !== prodotto?.sku) {
+        formattedData.sku = data.sku.trim();
       }
       if (data.shippingClass) {
         formattedData.shippingClass = data.shippingClass;
@@ -166,15 +189,13 @@ export function ProdottoVariazioneForm({
       data.regularPrice
         ? (formattedData.regularPrice = data.regularPrice)
         : (formattedData.regularPrice = '');
-        
+
       if (data.stockStatus) {
         formattedData.stockStatus = data.stockStatus;
       }
       if (data.manageStock && data.stockQuantity) {
         formattedData.stockQuantity = data.stockQuantity;
       }
-
-      console.log('Dati inviati:', JSON.stringify(formattedData, null, 2));
 
       onClose();
 
@@ -220,46 +241,55 @@ export function ProdottoVariazioneForm({
 
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={2} sx={{ mt: 1, mb: 1 }}>
+            <Grid item xs={12} md={12}>
+              <TextField fullWidth label="ID" value={variazione?.id} disabled />
+            </Grid>
+          </Grid>
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
               <Typography>Attributi </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Grid container spacing={2}>
-                <Controller
-                  name="attributes"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      {field.value?.map((attributo: any, index: number) => (
-                        <Grid item xs={12} md={6} key={index}>
-                          <FormControl fullWidth>
-                            <InputLabel>{attributo.name}</InputLabel>
-                            <Select
-                              value={attributo.option || ''}
-                              onChange={(e) => {
-                                const newValue = [...field.value];
-                                newValue[index] = {
-                                  ...newValue[index],
-                                  option: e.target.value,
-                                };
-                                field.onChange(newValue);
-                              }}
-                              label={attributo.name}
-                            >
-                              {attributo.options?.map((opzione: string, opzioneIndex: number) => (
-                                <MenuItem key={opzioneIndex} value={opzione}>
-                                  {opzione}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                      ))}
-                    </>
-                  )}
-                />
-              </Grid>
+              {isLoadingVariazione ? (
+                <CircularProgress />
+              ) : (
+                <Grid container spacing={2}>
+                  <Controller
+                    name="attributes"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        {field.value?.map((attributo: any, index: number) => (
+                          <Grid item xs={12} md={6} key={index}>
+                            <FormControl fullWidth>
+                              <InputLabel>{attributo.name}</InputLabel>
+                              <Select
+                                value={attributo.option || ''}
+                                onChange={(e) => {
+                                  const newValue = [...field.value];
+                                  newValue[index] = {
+                                    ...newValue[index],
+                                    option: e.target.value,
+                                  };
+                                  field.onChange(newValue);
+                                }}
+                                label={attributo.name}
+                              >
+                                {attributo.options?.map((opzione: string, opzioneIndex: number) => (
+                                  <MenuItem key={opzioneIndex} value={opzione}>
+                                    {opzione}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                        ))}
+                      </>
+                    )}
+                  />
+                </Grid>
+              )}
             </AccordionDetails>
           </Accordion>
 
@@ -273,9 +303,26 @@ export function ProdottoVariazioneForm({
                   <Controller
                     name="sku"
                     control={control}
-                    render={({ field }) => (
-                      <TextField {...field} fullWidth label="SKU" value={field.value} />
-                    )}
+                    render={({ field }) => {
+                      // Se lo SKU della variazione è uguale a quello del prodotto, mostralo solo come placeholder
+                      const isSkuFromParent = field.value === prodotto?.sku;
+                      const displayValue = isSkuFromParent ? '' : field.value;
+
+                      return (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="SKU Variazione"
+                          value={displayValue}
+                          placeholder={
+                            prodotto?.sku
+                              ? `Eredita: ${prodotto.sku}`
+                              : 'Lascia vuoto per ereditare'
+                          }
+                          helperText="Lascia vuoto per usare lo SKU del prodotto padre"
+                        />
+                      );
+                    }}
                   />
                 </Grid>
 

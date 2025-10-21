@@ -121,7 +121,7 @@ export function ProdottoVariazioniDatatable({
     { id: 'regular_price', label: 'Prezzo Listino' },
     { id: 'sale_price', label: 'Prezzo Saldo' },
     { id: 'on_sale', label: 'Saldo' },
-    { id: 'purchasable', label: 'Vendita' },
+    // { id: 'purchasable', label: 'Vendita' },
     { id: 'actions', label: 'Azioni' },
   ];
 
@@ -179,6 +179,7 @@ export function ProdottoVariazioniDatatable({
                   key={variazione.id}
                   id={variazione.id as number}
                   row={variazione}
+                  prodotto={prodotto}
                   onEdit={() => handleOpenForm(variazione)}
                   onDelete={() => handleDelete(variazione.id as number)}
                   onUpdate={(updates: Partial<Variazione>) =>

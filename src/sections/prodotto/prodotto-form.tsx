@@ -17,9 +17,6 @@ import {
   Paper,
   Alert,
   CircularProgress,
-  IconButton,
-  Checkbox,
-  ListItemText,
 } from '@mui/material';
 
 import { useState, useEffect } from 'react';
@@ -27,6 +24,9 @@ import { Prodotto } from 'src/types/Prodotto';
 import { Iconify } from 'src/components/iconify';
 import { formatDateTime } from 'src/hooks/use-format-date';
 import { useGetAllCategories } from 'src/hooks/useGetCategorie';
+import { useCategoryTree } from 'src/hooks/useCategoryTree';
+import { useAccordionStyles } from 'src/hooks/useAccordionStyles';
+import { useCleanEmptyFields } from 'src/hooks/useCleanEmptyFields';
 import { usePostProdotto } from 'src/hooks/usePostProdotto';
 import { usePutProdotto } from 'src/hooks/usePutProdotto';
 import { useDeleteProdotto } from 'src/hooks/useDeleteProdotto';
@@ -151,7 +151,7 @@ export function ProdottoForm({
             ? dayjs(prodotto.dateOnSaleTo).format('DD-MM-YYYY')
             : undefined
           : undefined,
-        brands: prodotto.brands || [],
+        // brands: prodotto.brands || [],
       });
     }
   }, [prodotto, reset, setValue]);
@@ -159,7 +159,6 @@ export function ProdottoForm({
   const navigate = useNavigate();
   const productType = watch('type');
   const manageStock = watch('manageStock');
-  const { convertUrl } = useDevUrl();
   const { ProdottoStatus, StockStatus, CatalogVisibility } = useProdottoStatus();
 
   const prodottoTipi = [
@@ -172,10 +171,6 @@ export function ProdottoForm({
     { name: ProdottoStatusLabel[ProdottoStatus.PRIVATE], value: ProdottoStatus.PRIVATE },
     { name: ProdottoStatusLabel[ProdottoStatus.DRAFT], value: ProdottoStatus.DRAFT },
     { name: ProdottoStatusLabel[ProdottoStatus.PENDING], value: ProdottoStatus.PENDING },
-    // { name: ProdottoStatusLabel[ProdottoStatus.FUTURE], value: ProdottoStatus.FUTURE },
-    //{ name: ProdottoStatusLabel[ProdottoStatus.TRASH], value: ProdottoStatus.TRASH },
-    //{ name: ProdottoStatusLabel[ProdottoStatus.AUTO_DRAFT], value: ProdottoStatus.AUTO_DRAFT },
-    //{ name: ProdottoStatusLabel[ProdottoStatus.INHERIT], value: ProdottoStatus.INHERIT },
   ];
 
   const stockStati = useGetStockStati();
@@ -189,40 +184,8 @@ export function ProdottoForm({
 
   const { data: categorie } = useGetAllCategories();
 
-  // Funzione helper per costruire la gerarchia delle categorie
-  const buildCategoryTree = (categories: Categoria[] | undefined): Categoria[] => {
-    if (!categories) return [];
-    const categoryMap = new Map<number, Categoria>();
-    const rootCategories: Categoria[] = [];
-
-    // Prima passata: crea la mappa e inizializza l'array children
-    categories.forEach((cat) => {
-      if (cat.id) {
-        categoryMap.set(cat.id, { ...cat, children: [] });
-      }
-    });
-    // Seconda passata: costruisci la gerarchia
-    categoryMap.forEach((cat) => {
-      if (cat.parent && cat.parent !== 0) {
-        const parentCat = categoryMap.get(cat.parent);
-        if (parentCat) {
-          // Ha un parent valido, aggiungilo come child
-          parentCat.children!.push(cat);
-        } else {
-          // Parent non trovato, mettilo nelle root
-          rootCategories.push(cat);
-        }
-      } else {
-        // Nessun parent, è una categoria root
-        rootCategories.push(cat);
-      }
-    });
-
-    return rootCategories;
-  };
-
-  // Costruisci l'albero gerarchico delle categorie
-  const categorieTree = buildCategoryTree(categorie);
+  // Costruisci l'albero gerarchico delle categorie usando l'hook
+  const categorieTree = useCategoryTree(categorie);
 
   const { data: tags, isFetching, isRefetching } = useGetAllTags();
   const { data: brands } = useGetAllBrands();
@@ -261,7 +224,6 @@ export function ProdottoForm({
   // Aggiungi questo stato per gestire l'apertura/chiusura della modal
   const [isCategorieModalOpen, setIsCategorieModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [showExistingFiles, setShowExistingFiles] = useState(false);
 
   // Aggiorna i valori del form quando cambiano gli editor
   useEffect(() => {
@@ -289,82 +251,27 @@ export function ProdottoForm({
   }, [prodotto?.metaData]);
 
   // Configurazione dei moduli per l'editor Quill
-  const quillModules = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      [{ color: [] }, { background: [] }],
-      ['link', 'image'],
-      ['clean'],
-    ],
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setSelectedFiles(Array.from(event.target.files));
-    }
-  };
+  // const quillModules = {
+  //   toolbar: [
+  //     [{ header: [1, 2, 3, false] }],
+  //     ['bold', 'italic', 'underline', 'strike'],
+  //     [{ list: 'ordered' }, { list: 'bullet' }],
+  //     [{ color: [] }, { background: [] }],
+  //     ['link', 'image'],
+  //     ['clean'],
+  //   ],
+  // };
 
   const handleDelete = (id: string, force: boolean) => {
     deleteProdotto({ force });
     if (onDelete) onDelete(id, force);
   };
 
-  // Aggiungi questa funzione helper all'inizio del componente ProdottoForm
-  const getAccordionStyles = (title: string) => {
-    // Colori diversi per ogni tipo di accordion
-    const colorMap: Record<string, string> = {
-      'Azioni prodotto': '#fff',
-      'Categorie, Tag': '#fff',
-      Prezzi: '#fff',
-      Immagini: '#fff',
-      Magazzino: '#fff',
-      SEO: '#fff',
-    };
+  // Hook per gli stili degli accordion
+  const getAccordionStyles = useAccordionStyles();
 
-    // Colori per i bordi
-    const borderMap: Record<string, string> = {
-      'Azioni prodotto': 'primary.dark',
-      'Categorie, Tag': 'success.main',
-      Prezzi: 'warning.main',
-      Immagini: 'secondary.main',
-      Magazzino: 'info.main',
-      SEO: 'error.main',
-    };
-
-    return {
-      borderRadius: 2,
-      mb: 2,
-      border: '1px solid',
-      borderColor: 'divider',
-      marginTop: '10px !important',
-      padding: '10px !important',
-      boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.1)',
-      '&:before': {
-        display: 'none', // Rimuovi il bordo default di MUI
-      },
-      '& .MuiAccordionSummary-root': {
-        // backgroundColor: colorMap[title],
-        borderRadius: '8px 8px 0 0',
-        transition: 'all 0.2s ease-in-out',
-        // padding: '12px 24px',
-        margin: '0px !important',
-        paddingY: '0px !important',
-        paddingX: '10px !important',
-
-        '& .MuiTypography-root': {
-          fontWeight: 600,
-          color: (theme: any) => theme.palette[borderMap[title]],
-        },
-      },
-      '& .MuiAccordionDetails-root': {
-        paddingY: '0px !important',
-        paddingX: '10px !important',
-        //backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      },
-    };
-  };
+  // Hook per pulire i campi vuoti
+  const cleanEmptyFields = useCleanEmptyFields();
 
   //Funzione per rimuovere un'immagine
   const handleProdottoImmagineRimuovi = async (immagine: any) => {
@@ -396,14 +303,7 @@ export function ProdottoForm({
     }
   };
 
-  // Effetto per caricare le immagini quando vengono selezionate
-  useEffect(() => {
-    if (selectedFiles.length > 0 && prodotto?.id) {
-      // Le immagini vengono gestite tramite handleUploadModalConfirm
-      // quando l'utente conferma la selezione nel modal
-    }
-  }, [selectedFiles, prodotto?.id]);
-  //const categorie_id = watch('categorie_id');
+
 
   // Verifica se il prodotto è in sconto
   const verificaSconto = () => {
@@ -422,7 +322,6 @@ export function ProdottoForm({
   const salvaProdotto = async (formData: any) => {
     // Le immagini sono già state preparate e aggiunte al formData
     // tramite setValue('images', ...) nella funzione handleUploadModalConfirm
-
     // Rimuovi campi read-only prima di inviare
     const cleanedData = removeReadOnlyFields(formData);
 
@@ -444,46 +343,6 @@ export function ProdottoForm({
         },
       });
     }
-  };
-
-  // Funzione per pulire i campi vuoti dall'oggetto
-  const cleanEmptyFields = (obj: any): any => {
-    const cleaned: any = {};
-
-    Object.keys(obj).forEach((key) => {
-      let value = obj[key];
-
-      // Se è una stringa, fai trim
-      if (typeof value === 'string') {
-        value = value.trim();
-      }
-
-      // Salta i valori null, undefined o stringhe vuote (anche dopo trim)
-      // WooCommerce non accetta stringhe vuote, preferisce l'assenza del campo
-      if (value === null || value === undefined || value === '') {
-        return;
-      }
-
-      // Se è un array vuoto, salta
-      if (Array.isArray(value) && value.length === 0) {
-        return;
-      }
-
-      // Se è un oggetto (come dimensions), puliscilo ricorsivamente
-      if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
-        const cleanedNested = cleanEmptyFields(value);
-        // Aggiungi solo se l'oggetto pulito non è vuoto
-        if (Object.keys(cleanedNested).length > 0) {
-          cleaned[key] = cleanedNested;
-        }
-        return;
-      }
-
-      // Mantieni il valore se non è vuoto
-      cleaned[key] = value;
-    });
-
-    return cleaned;
   };
 
   // Gestione del submit con verifica sconto
@@ -1339,7 +1198,7 @@ export function ProdottoForm({
                   </AccordionSummary>
                   <AccordionDetails>
                     <Grid container spacing={3}>
-                      {productType === 'simple' && (
+                    
                         <Grid item xs={12} md={2}>
                           <Typography gutterBottom>Gestione magazzino</Typography>
                           <Switch
@@ -1347,7 +1206,7 @@ export function ProdottoForm({
                             defaultChecked={prodotto?.manageStock || false}
                           />
                         </Grid>
-                      )}
+                      
 
                       {productType === 'simple' && manageStock && (
                         <Grid item xs={12} md={2}>

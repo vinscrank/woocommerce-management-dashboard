@@ -30,22 +30,33 @@ type ProdottoVariazioneTableRowProps = {
   isLoading?: boolean;
   onUpdate?: (updates: Partial<any>) => void;
   onDragEnd?: (oldIndex: number, newIndex: number) => void;
+  prodotto?: any;
 };
 
 export const ProdottoVariazioneTableRow = forwardRef<
   HTMLTableRowElement,
   ProdottoVariazioneTableRowProps
->(({ row, onEdit, onDelete, id, isLoading = false, onUpdate }, ref) => {
+>(({ row, onEdit, onDelete, id, isLoading = false, onUpdate, prodotto }, ref) => {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: row,
   });
 
   useEffect(() => {
-    reset(row);
-  }, [row, reset]);
+    // Se lo SKU della variazione è uguale al prodotto padre, resettalo come vuoto
+    const skuValue = row.sku === prodotto?.sku ? '' : row.sku;
+    reset({
+      ...row,
+      sku: skuValue,
+    });
+  }, [row, reset, prodotto?.sku]);
 
   const onSubmit = (data: any) => {
-    onUpdate?.(data);
+    // Non inviare lo SKU se è uguale a quello del prodotto padre (per evitare duplicati)
+    const updatedData = { ...data };
+    if (updatedData.sku === prodotto?.sku || !updatedData.sku) {
+      delete updatedData.sku;
+    }
+    onUpdate?.(updatedData);
   };
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -100,9 +111,21 @@ export const ProdottoVariazioneTableRow = forwardRef<
         <Controller
           name="sku"
           control={control}
-          render={({ field })        => (
-            <TextField {...field} size="small" onBlur={() => handleSubmit(onSubmit)()} />
-          )}
+          render={({ field }) => {
+            // Se lo SKU della variazione è uguale a quello del prodotto padre, mostralo solo come placeholder
+            const isSkuFromParent = field.value === prodotto?.sku;
+            const displayValue = isSkuFromParent ? '' : field.value;
+
+            return (
+              <TextField
+                {...field}
+                size="small"
+                value={displayValue}
+                onBlur={() => handleSubmit(onSubmit)()}
+                placeholder={prodotto?.sku ? `Eredita: ${prodotto.sku}` : row.sku || ''}
+              />
+            );
+          }}
         />
       </TableCell>
 
@@ -184,9 +207,9 @@ export const ProdottoVariazioneTableRow = forwardRef<
         />
       </TableCell>
 
-      <TableCell>
-        <Switch checked={row.purchasable} disabled size="small" />
-      </TableCell>
+      {/* <TableCell>
+        <Switch checked={row.purchasable ?? false} disabled size="small" />
+      </TableCell> */}
 
       <TableCell>
         <IconButton onClick={handleOpenPopover}>

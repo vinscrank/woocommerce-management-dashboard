@@ -6,61 +6,59 @@ import { Prodotto } from 'src/types/Prodotto';
 import { useGetProdotto } from 'src/hooks/useGetProdotto';
 
 export function ProdottoView({ id }: { id: string }) {
-    const navigate = useNavigate();
-    const { data: prodotto, isLoading, refetch } = useGetProdotto(id);
+  const navigate = useNavigate();
+  const { data: prodotto, isLoading, refetch } = useGetProdotto(id);
 
-    const handleSync = () => {
-        refetch();
-    };
+  const handleSync = () => {
+    // Non serve refetch manuale, le invalidateQueries di React Query
+    // negli hook usePutProdotto/usePostProdotto già gestiscono il refetch automatico
+    // refetch();
+  };
 
-    const handleSubmit = (data: any) => {
-        refetch();
-    };
+  const handleSubmit = (data: any) => {
+    // Non serve refetch manuale, le invalidateQueries già lo fanno
+    // refetch();
+  };
 
-    if (isLoading) {
-        return (
-            <Container>
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-                    <CircularProgress />
-                </Box>
-            </Container>
-        );
-    }
-
-    if (!prodotto && !isLoading) {
-        return (
-            <Container>
-                <Box mt={5}>
-                    <Alert severity="error">
-                        Prodotto non trovato o errore durante il caricamento
-                    </Alert>
-                    <Box mt={3} display="flex" justifyContent="center">
-                        <Button
-                            variant="contained"
-                            startIcon={<Iconify icon="eva:arrow-back-fill" />}
-                            onClick={() => navigate('/prodotti')}
-                        >
-                            Torna alla lista prodotti
-                        </Button>
-                    </Box>
-                </Box>
-            </Container>
-        );
-    }
-
+  if (isLoading) {
     return (
-        <>
-
-            <Container maxWidth="xl">
-
-                <ProdottoForm
-                    prodottoId={prodotto?.id?.toString() || ''}
-                    prodotto={prodotto as Prodotto}
-                    onSubmit={handleSubmit}
-                    onSync={handleSync}
-
-                />
-            </Container>
-        </>
+      <Container>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+          <CircularProgress />
+        </Box>
+      </Container>
     );
-} 
+  }
+
+  if (!prodotto && !isLoading) {
+    return (
+      <Container>
+        <Box mt={5}>
+          <Alert severity="error">Prodotto non trovato o errore durante il caricamento</Alert>
+          <Box mt={3} display="flex" justifyContent="center">
+            <Button
+              variant="contained"
+              startIcon={<Iconify icon="eva:arrow-back-fill" />}
+              onClick={() => navigate('/prodotti')}
+            >
+              Torna alla lista prodotti
+            </Button>
+          </Box>
+        </Box>
+      </Container>
+    );
+  }
+
+  return (
+    <>
+      <Container maxWidth="xl">
+        <ProdottoForm
+          prodottoId={prodotto?.id?.toString() || ''}
+          prodotto={prodotto as Prodotto}
+          onSubmit={handleSubmit}
+          onSync={handleSync}
+        />
+      </Container>
+    </>
+  );
+}
