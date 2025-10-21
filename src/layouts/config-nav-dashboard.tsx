@@ -65,6 +65,11 @@ export const navData = [
     path: '/files',
     icon: iconify('mdi:file-outline'),
   },
+  {
+    title: 'Gestione brands',
+    path: '/brands',
+    icon: iconify('mdi:tag-outline'),
+  },
   // {
   //   title: 'Log Errori',
   //   path: '/errors',

@@ -18,11 +18,11 @@ type ProdottoAttributiDatatableProps = {
 };
 
 const columns = [
-  { id: 'attributo.name', label: 'Nome Attributo' },
-  // { id: 'attributo.slug', label: 'Slug Attributo' },
-  // { id: 'abilitato_per_variazioni', label: 'Usato nelle variazioni' },
-  // { id: 'visibile', label: 'Visibile nella pagina prodotto' },
-  // { id: 'opzioni_id', label: 'Opzioni' },
+  { id: 'id', label: 'ID' },
+  { id: 'name', label: 'Nome Attributo' },
+  { id: 'abilitato_per_variazioni', label: 'Usato nelle variazioni' },
+  { id: 'visibile', label: 'Visibile nella pagina prodotto' },
+   { id: 'options', label: 'Opzioni' },
   { id: 'actions', label: 'Azioni' },
 ];
 
@@ -135,6 +135,7 @@ export function ProdottoAttributiDatatable({
         maxWidth="md"
         isLoading={isSaving}
       >
+        {JSON.stringify(prodotto.attributes)}
         <ProdottoAttributoForm
           isLoading={isSaving}
           open={openModal}

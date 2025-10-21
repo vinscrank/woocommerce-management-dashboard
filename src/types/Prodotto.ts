@@ -4,7 +4,8 @@ import { components } from "./Global";
 
 // import { ProdottoAttributo } from "./ProdottoAttributo"
 export type Prodotto = components["schemas"]["WooCommerceProductResponse"] & {
-    metaData?: Array<{ id?: number; key: string; value: string }>;
+  metaData?: Array<{ id?: number; key: string; value: string }>;
+  brand?: string; // ID del brand salvato nei metaData
 };
 
 // export interface components {

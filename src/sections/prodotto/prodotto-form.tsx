@@ -33,6 +33,7 @@ import { useNavigate } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import { useGetTags } from 'src/hooks/useGetTags';
+import { useGetBrands } from 'src/hooks/useGetBrands';
 import { ProdottoAttributiDatatable } from './prodotto-attributi-table';
 import { ProdottoVariazioniDatatable } from './prodotto-variazioni-datatable';
 import { STOCK_ENABLED } from 'src/utils/const';
@@ -64,6 +65,7 @@ import { UploadModal } from 'src/components/upload-modal/UploadModal';
 import { useDevUrl } from 'src/hooks/useDevUrl';
 import { Categoria } from 'src/types/Categoria';
 import { useProdottoStatus } from 'src/hooks/useProdottoStatus';
+import { useGetStockStati } from 'src/hooks/useGetStockStati';
 import {
   ProdottoStatusLabel,
   StockStatusLabel,
@@ -126,6 +128,9 @@ export function ProdottoForm({
       description: prodotto?.description || '',
       categories: prodotto?.categories || [],
       tags: prodotto?.tags || [],
+      brand:
+        prodotto?.metaData?.find((meta: any) => meta.key === '_yoast_wpseo_primary_product_brand')
+          ?.value || '',
       //deleted: prodotto?.deleted || false,
       id: prodotto?.id || undefined,
       permalink: prodotto?.permalink || '',
@@ -176,11 +181,7 @@ export function ProdottoForm({
     //{ name: ProdottoStatusLabel[ProdottoStatus.INHERIT], value: ProdottoStatus.INHERIT },
   ];
 
-  const stockStati = [
-    { name: StockStatusLabel[StockStatus.IN_STOCK], value: StockStatus.IN_STOCK },
-    { name: StockStatusLabel[StockStatus.OUT_OF_STOCK], value: StockStatus.OUT_OF_STOCK },
-    { name: StockStatusLabel[StockStatus.ON_BACKORDER], value: StockStatus.ON_BACKORDER },
-  ];
+  const stockStati = useGetStockStati();
 
   const catalogVisibilityOptions = [
     { name: CatalogVisibilityLabel[CatalogVisibility.VISIBLE], value: CatalogVisibility.VISIBLE },
@@ -229,6 +230,7 @@ export function ProdottoForm({
   const categorieTree = buildCategoryTree(categorie);
 
   const { data: tags, isFetching, isRefetching } = useGetTags();
+  const { data: brands } = useGetBrands();
   const { mutate: storeProdotto, isPending: isStoreLoading } = usePostProdotto();
   const { mutate: updateProdotto, isPending: isUpdateLoading } = usePutProdotto(
     prodotto?.id as number
@@ -603,6 +605,7 @@ export function ProdottoForm({
       'relatedIds',
       'backordersAllowed',
       'backordered',
+      'brand', // Il brand viene passato nei metaData
     ];
 
     readOnlyFields.forEach((field) => {
@@ -1038,6 +1041,49 @@ export function ProdottoForm({
                   {tags?.map((tag) => (
                     <MenuItem key={tag.id} value={tag.id?.toString() || ''}>
                       {tag.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel id="brand-label">Brand</InputLabel>
+                <Select
+                  labelId="brand-label"
+                  id="brand"
+                  label="Brand"
+                  value={watch('brand') || ''}
+                  onChange={(e) => {
+                    const selectedId = e.target.value as string;
+                    setValue('brand', selectedId as any);
+
+                    // Aggiorna i metaData con il brand selezionato
+                    setMetaData((prev) => {
+                      const filtered = prev.filter(
+                        (meta) => meta.key !== '_yoast_wpseo_primary_product_brand'
+                      );
+                      if (selectedId) {
+                        return [
+                          ...filtered,
+                          {
+                            key: '_yoast_wpseo_primary_product_brand',
+                            name: '_yoast_wpseo_primary_product_brand',
+                            value: selectedId,
+                          },
+                        ];
+                      }
+                      return filtered;
+                    });
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Nessun brand</em>
+                  </MenuItem>
+                  {brands?.map((brand) => (
+                    <MenuItem key={brand.id} value={brand.id?.toString() || ''}>
+                      {brand.name}
                     </MenuItem>
                   ))}
                 </Select>

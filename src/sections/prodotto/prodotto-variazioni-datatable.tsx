@@ -42,7 +42,8 @@ export function ProdottoVariazioniDatatable({
   );
   const { mutate: batchUpdate, isPending: isBatchUpdatePending } =
     usePostBatchVariazioni(prodotto_id);
-  const { mutate: destroyVariazione, isPending: isDeleteVariazionePending } = useDeleteVariazione();
+  const { mutate: destroyVariazione, isPending: isDeleteVariazionePending } =
+    useDeleteVariazione(prodotto_id);
 
   const [localVariazioni, setLocalVariazioni] = useState<Variazione[]>(variazioni || []);
 
@@ -191,15 +192,15 @@ export function ProdottoVariazioniDatatable({
       </DndContext>
 
       <ProdottoVariazioneForm
-          open={openForm}
-          onClose={handleCloseForm}
-          variazione={selectedVariazione}
-          prodotto_id={prodotto_id}
-          prodotto={prodotto}
-          onSubmitSuccess={() => {
-            //handleCloseForm();
-          }}
-        />
+        open={openForm}
+        onClose={handleCloseForm}
+        variazione={selectedVariazione}
+        prodotto_id={prodotto_id}
+        prodotto={prodotto}
+        onSubmitSuccess={() => {
+          //handleCloseForm();
+        }}
+      />
     </Box>
   );
 }

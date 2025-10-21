@@ -27,6 +27,7 @@ import { useGetVariazione } from 'src/hooks/useGetVariazione';
 import { usePostVariazione } from 'src/hooks/usePostVariazione';
 import { usePutVariazione } from 'src/hooks/usePutVariazione';
 import { useDeleteVariazione } from 'src/hooks/useDeleteVariazione';
+import { useGetStockStati } from 'src/hooks/useGetStockStati';
 import { Variazione } from 'src/types/Variazione';
 import { STOCK_ENABLED } from 'src/utils/const';
 
@@ -69,8 +70,9 @@ export function ProdottoVariazioneForm({
     variazioneId as number
   );
 
-  const { mutate: deleteVariazione, isPending: isDeleteLoading } = useDeleteVariazione();
+  const { mutate: deleteVariazione, isPending: isDeleteLoading } = useDeleteVariazione(prodotto_id);
   const { data: variazioneSelezionata } = useGetVariazione(prodotto_id, variazione?.id);
+  const stockStati = useGetStockStati();
 
   useEffect(() => {
     const initForm = async () => {
@@ -134,30 +136,20 @@ export function ProdottoVariazioneForm({
   const handleDelete = async () => {
     if (!variazioneId) return;
 
-    try {
-      if (confirm('Sei sicuro di voler eliminare questa variazione?')) {
-        deleteVariazione(variazioneId, {
-          onSuccess: () => {
-            onSubmitSuccess?.();
-            onClose();
-          },
-        });
-      }
-    } catch (error) {
-      console.error("Errore durante l'eliminazione della variazione:", error);
+    if (confirm('Sei sicuro di voler eliminare questa variazione?')) {
+      deleteVariazione(variazioneId, {
+        onSuccess: () => {
+          onSubmitSuccess?.();
+          onClose();
+        },
+      });
     }
   };
-
-  const stockStati = [
-    { name: 'Disponibile', value: 'instock' },
-    { name: 'Esaurito', value: 'outofstock' },
-    { name: 'Permette ordini arretrati', value: 'onbackorder' },
-  ];
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {variazione?.id ? `Variazione ${variazione.name}` : 'Nuova variazione'}
+        {variazione?.id ? `Variazione ${variazione.sku}` : 'Nuova variazione'}
       </DialogTitle>
 
       <DialogContent>
@@ -175,7 +167,6 @@ export function ProdottoVariazioneForm({
                     <>
                       {field.value?.map((attributo: any, index: number) => (
                         <Grid item xs={12} md={3} key={index}>
-                          {JSON.stringify(attributo)}
                           <FormControl fullWidth>
                             <InputLabel>{attributo.name}</InputLabel>
                             <Select

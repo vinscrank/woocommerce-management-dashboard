@@ -10,6 +10,7 @@ import { DashboardLayout } from 'src/layouts/dashboard';
 import WithAuth from 'src/auth/WithAuth';
 import FilesPage from 'src/pages/files';
 import AttributiPage from 'src/pages/attributi';
+import { BrandsView } from 'src/sections/brands/view/brand-view';
 
 // ----------------------------------------------------------------------
 
@@ -24,7 +25,7 @@ export const ImportProdottiPage = lazy(() => import('src/pages/import-prodotti')
 export const SeoConfigPage = lazy(() => import('src/pages/seo-config'));
 export const ProdottiPage = lazy(() => import('src/pages/prodotti'));
 export const ProdottoPage = lazy(() => import('src/pages/prodotto'));
-
+export const BrandsPage = lazy(() => import('src/pages/brands'));
 // ----------------------------------------------------------------------
 
 const renderFallback = (
@@ -57,12 +58,13 @@ export function Router() {
         // { path: 'user', element: <UserPage /> },
         { path: 'categorie', element: <CategoriePage /> },
         { path: 'tags', element: <TagsPage /> },
-         { path: 'files', element: <FilesPage /> },
+        { path: 'files', element: <FilesPage /> },
         { path: 'import-prodotti', element: <ImportProdottiPage /> },
         { path: 'attributi', element: <AttributiPage /> },
         { path: 'seo-config', element: <SeoConfigPage /> },
         { path: 'prodotti', element: <ProdottiPage /> },
         { path: 'prodotti/:id', element: <ProdottoPage /> },
+        { path: 'brands', element: <BrandsPage /> },
       ],
     },
     {
