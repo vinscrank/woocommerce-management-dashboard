@@ -10,6 +10,7 @@ import {
   TextField,
   Button,
   Typography,
+  Box,
 } from '@mui/material';
 import { useState, useCallback } from 'react';
 import { Iconify } from 'src/components/iconify';
@@ -32,6 +33,7 @@ export function FileTableRow({ row }: FileTableRowProps) {
   const { convertUrl } = useDevUrl();
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const [openRenameModal, setOpenRenameModal] = useState(false);
+  const [openImagePreview, setOpenImagePreview] = useState(false);
   const [newName, setNewName] = useState('');
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -79,6 +81,14 @@ export function FileTableRow({ row }: FileTableRowProps) {
     }
   };
 
+  const handleImageClick = () => {
+    setOpenImagePreview(true);
+  };
+
+  const handleCloseImagePreview = () => {
+    setOpenImagePreview(false);
+  };
+
   return (
     <>
       <TableRow hover>
@@ -97,7 +107,9 @@ export function FileTableRow({ row }: FileTableRowProps) {
           <img
             src={convertUrl(row.sourceUrl)}
             alt={row.slug}
-            style={{ maxWidth: '70px', height: 'auto' }}
+            style={{ maxWidth: '70px', height: 'auto', cursor: 'pointer' }}
+            onClick={handleImageClick}
+            title="Clicca per ingrandire"
           />
         </TableCell>
         <TableCell>
@@ -191,6 +203,35 @@ export function FileTableRow({ row }: FileTableRowProps) {
             {isSaving ? 'Rinominando...' : 'Rinomina'}
           </Button>
         </form>
+      </GenericModal>
+
+      {/* Modale per l'anteprima dell'immagine */}
+      <GenericModal
+        open={openImagePreview}
+        onClose={handleCloseImagePreview}
+        title={row.slug || 'Anteprima immagine'}
+        maxWidth="md"
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: 2,
+            bgcolor: 'background.paper',
+            borderRadius: 1,
+          }}
+        >
+          <img
+            src={convertUrl(row.sourceUrl)}
+            alt={row.slug}
+            style={{
+              maxWidth: '100%',
+              maxHeight: '80vh',
+              objectFit: 'contain',
+            }}
+          />
+        </Box>
       </GenericModal>
     </>
   );
