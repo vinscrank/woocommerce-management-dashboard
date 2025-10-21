@@ -68,13 +68,16 @@ export function ProdottoAttributoForm({
   );
 
   // PRIORITÀ:
-  // 1. Se l'attributo è già nel prodotto E ci sono opzioni dall'API, usa le opzioni dall'API
-  // 2. Altrimenti usa le opzioni già salvate nel prodotto
-  // 3. Altrimenti array vuoto
+  // 1. Se NON c'è un attributo selezionato, ritorna array vuoto
+  // 2. Se l'attributo è già nel prodotto E ci sono opzioni dall'API, usa le opzioni dall'API
+  // 3. Altrimenti usa le opzioni già salvate nel prodotto
+  // 4. Altrimenti array vuoto
   // In questo modo quando modifichi puoi sempre aggiungere altre opzioni disponibili
-  const attributeOptions = (attributoOpzioniFromAPI ||
-    selectedAttributeFromProduct?.options ||
-    []) as any;
+  const attributeOptions = (
+    !selectedAttributoId
+      ? []
+      : attributoOpzioniFromAPI || selectedAttributeFromProduct?.options || []
+  ) as any;
 
   const { register, handleSubmit, control, watch, setValue, reset } = useForm<any>({
     defaultValues: {
@@ -138,6 +141,21 @@ export function ProdottoAttributoForm({
     // Aggiorna il ref con il nuovo valore
     previousAttributoIdRef.current = selectedAttributoId;
   }, [selectedAttributoId, prodotto_attributo, setValue]);
+
+  // Reset opzioni quando cambia da attributo interno a globale (o viceversa)
+  useEffect(() => {
+    // Solo per nuovi attributi (non in modifica)
+    if (!prodotto_attributo) {
+      // Resetta le opzioni quando cambia il tipo di attributo
+      setValue('options', []);
+      // Resetta anche l'ID dell'attributo selezionato se passi a interno
+      if (isSpecifico) {
+        setValue('id', null);
+        setSelectedAttributoId(null);
+        previousAttributoIdRef.current = null;
+      }
+    }
+  }, [isSpecifico, prodotto_attributo, setValue]);
 
   const handleDelete = () => {
     if (prodotto_attributo && onDelete) {
@@ -238,10 +256,10 @@ export function ProdottoAttributoForm({
                   control={control}
                   render={({ field }) => (
                     <Select
-                      disabled={prodotto_attributo?.id}
+                      disabled={!!prodotto_attributo}
                       {...field}
                       label="Attributo"
-                      value={prodotto_attributo?.id || ''}
+                      value={field.value || ''}
                       onChange={(e) => {
                         field.onChange(e);
                         handleAttributoChange(e.target.value);

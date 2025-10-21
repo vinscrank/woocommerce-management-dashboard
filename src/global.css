@@ -77,9 +77,80 @@ input[type='number']::-webkit-inner-spin-button {
 /* Applica il colore primario personalizzato */
 .MuiButton-containedPrimary,
 .MuiChip-colorPrimary,
-.MuiSwitch-switchBase.Mui-checked,
 .MuiFab-primary {
   background-color: var(--custom-primary-main) !important;
+}
+
+/* Switch styling migliorato */
+.MuiSwitch-switchBase.Mui-checked {
+  color: var(--custom-primary-main) !important;
+}
+
+.MuiSwitch-switchBase.Mui-checked+.MuiSwitch-track {
+  background-color: var(--custom-primary-main) !important;
+  opacity: 0.5 !important;
+}
+
+/* Thumb dello switch - più piccolo e trasparente */
+.MuiSwitch-thumb {
+  width: 18px !important;
+  height: 18px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Switch base - centraggio verticale */
+.MuiSwitch-switchBase {
+  padding: 3px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+}
+
+/* Track dello switch - più sottile */
+.MuiSwitch-track {
+  border-radius: 12px !important;
+  opacity: 0.3 !important;
+}
+
+/* Switch root - altezza container */
+.MuiSwitch-root {
+  width: 42px !important;
+  height: 24px !important;
+  padding: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  margin: 4px 8px !important;
+}
+
+/* Switch in stato checked */
+.MuiSwitch-switchBase.Mui-checked {
+  transform: translateX(18px) translateY(-50%) !important;
+}
+
+.MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb {
+  background-color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Switch in stato unchecked */
+.MuiSwitch-switchBase:not(.Mui-checked) .MuiSwitch-thumb {
+  background-color: #FFFFFF !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Switch in dark mode */
+[data-mui-color-scheme='dark'] .MuiSwitch-track {
+  opacity: 0.4 !important;
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiSwitch-switchBase.Mui-checked+.MuiSwitch-track {
+  background-color: var(--custom-primary-light) !important;
+  opacity: 0.5 !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiSwitch-thumb {
+  background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
 .MuiButton-containedPrimary:hover {
@@ -109,7 +180,20 @@ input[type='number']::-webkit-inner-spin-button {
 .MuiPaper-root,
 .MuiCard-root,
 .MuiTextField-root .MuiOutlinedInput-root,
-.MuiChip-root {
+.MuiChip-root,
+.MuiDialog-paper,
+.MuiAvatar-root,
+img,
+.MuiCardMedia-root {
+  border-radius: var(--custom-border-radius) !important;
+}
+
+/* Bordi arrotondati anche per elementi specifici */
+.product-image,
+.category-image,
+.thumbnail,
+[class*='image'],
+[class*='Image'] {
   border-radius: var(--custom-border-radius) !important;
 }
 
