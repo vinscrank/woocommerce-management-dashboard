@@ -26,6 +26,7 @@ const fetchCategories = async (
     if (search) {
         params.search = search;
     }
+    params.fields = 'id,name,slug,parent';
 
     const { data } = await axiosInstance.get(`${API_BASE_PREFIX}/${ecommerceId}/products/categories`, {
         params,

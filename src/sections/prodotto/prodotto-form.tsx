@@ -303,8 +303,6 @@ export function ProdottoForm({
     }
   };
 
-
-
   // Verifica se il prodotto è in sconto
   const verificaSconto = () => {
     if ((watch('dateOnSaleFrom') || watch('dateOnSaleTo')) && !watch('salePrice')) {
@@ -324,6 +322,9 @@ export function ProdottoForm({
     // tramite setValue('images', ...) nella funzione handleUploadModalConfirm
     // Rimuovi campi read-only prima di inviare
     const cleanedData = removeReadOnlyFields(formData);
+
+    console.log('Dati puliti prima invio:', cleanedData);
+    console.log('metaData presente?', 'metaData' in cleanedData, 'meta_data' in cleanedData);
 
     if (prodotto?.id) {
       updateProdotto(
@@ -446,12 +447,19 @@ export function ProdottoForm({
       formData.brands = formData.brands.map((brand: any) => ({ id: brand.id }));
     }
 
-    // Pulisci i metaData rimuovendo quelli con valori vuoti
+    // Pulisci i metaData rimuovendo quelli con valori vuoti o solo spazi
     if (formData.metaData && Array.isArray(formData.metaData)) {
-      formData.metaData = formData.metaData.filter((meta: any) => {
-        // Mantieni solo i metaData con valori non vuoti
-        return meta.value !== null && meta.value !== undefined && meta.value !== '';
-      });
+      formData.metaData = formData.metaData
+        .filter((meta: any) => {
+          // Mantieni solo i metaData con valori non vuoti (e non solo spazi)
+          const value = typeof meta.value === 'string' ? meta.value.trim() : meta.value;
+          return value !== null && value !== undefined && value !== '';
+        })
+        .map((meta: any) => ({
+          ...meta,
+          // Fai trim del valore se è stringa
+          value: typeof meta.value === 'string' ? meta.value.trim() : meta.value,
+        }));
 
       // Se non ci sono metaData validi, rimuovi completamente l'array
       if (formData.metaData.length === 0) {
@@ -1198,15 +1206,13 @@ export function ProdottoForm({
                   </AccordionSummary>
                   <AccordionDetails>
                     <Grid container spacing={3}>
-                    
-                        <Grid item xs={12} md={2}>
-                          <Typography gutterBottom>Gestione magazzino</Typography>
-                          <Switch
-                            {...register('manageStock')}
-                            defaultChecked={prodotto?.manageStock || false}
-                          />
-                        </Grid>
-                      
+                      <Grid item xs={12} md={2}>
+                        <Typography gutterBottom>Gestione magazzino</Typography>
+                        <Switch
+                          {...register('manageStock')}
+                          defaultChecked={prodotto?.manageStock || false}
+                        />
+                      </Grid>
 
                       {productType === 'simple' && manageStock && (
                         <Grid item xs={12} md={2}>

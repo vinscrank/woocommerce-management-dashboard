@@ -23,6 +23,8 @@ export const PRODOTTO_READONLY_FIELDS = [
   'variations',
   'priceHtml',
   'dimensions', // Rimuovi dimensions con tutti i suoi sottocampi
+  'metaData', // Non inviare metadata nelle PATCH
+  'meta_data', // Variante snake_case
 ];
 
 /**
