@@ -8,7 +8,7 @@ import { API_BASE_PREFIX } from 'src/utils/const';
 const fetchAttributi = async (
     ecommerceId: number | null,
     page: number = 1,
-    perPage: number = 25,
+    perPage: number = 999,
     search: string = ''
 ): Promise<PaginatedResponse<Attributo>> => {
     const params: any = {
@@ -40,7 +40,7 @@ const fetchAttributi = async (
 };
 
 // Hook paginato per le liste
-export const useGetAttributi = (page: number = 1, perPage: number = 25, search: string = '') => {
+export const useGetAttributi = (page: number = 1, perPage: number = 999, search: string = '') => {
     const { ecommerceId } = useWorkspace();
     return useQuery<PaginatedResponse<Attributo>, Error>({
         queryKey: ['attributi', ecommerceId, page, perPage, search],

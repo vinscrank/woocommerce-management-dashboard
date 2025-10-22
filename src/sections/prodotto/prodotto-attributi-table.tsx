@@ -37,7 +37,7 @@ export function ProdottoAttributiDatatable({
   const [selectedProdottoAttributo, setSelectedProdottoAttributo] = useState<any | null>(null);
   const [attributiLocali, setAttributiLocali] = useState<any[]>([]);
 
-  const { data: attributiData } = useGetAttributi(1, 100, '');
+  const { data: attributiData } = useGetAttributi(1, 999, '');
   const { mutate: deleteProdottoAttributo, isPending: isDeletingProdottoAttributo } =
     useDeleteProdottoAttributo(prodotto);
 

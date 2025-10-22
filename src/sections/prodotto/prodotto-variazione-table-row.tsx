@@ -130,7 +130,7 @@ export const ProdottoVariazioneTableRow = forwardRef<
         />
       </TableCell>
 
-      {/* {STOCK_ENABLED === '1' && (
+      {STOCK_ENABLED === '1' && (
         <TableCell>
           <Controller
             name="stockQuantity"
@@ -146,16 +146,17 @@ export const ProdottoVariazioneTableRow = forwardRef<
             )}
           />
         </TableCell>
-      )} */}
+      )}
 
       <TableCell>
         <Controller
           name="regularPrice"
           control={control}
-          render={({ field }) => (
+          render={({ field: { ref, ...field } }) => (
             <NumericFormat
               customInput={TextField}
               {...field}
+              getInputRef={ref}
               size="small"
               decimalScale={2}
               fixedDecimalScale
@@ -175,10 +176,11 @@ export const ProdottoVariazioneTableRow = forwardRef<
         <Controller
           name="salePrice"
           control={control}
-          render={({ field }) => (
+          render={({ field: { ref, ...field } }) => (
             <NumericFormat
               customInput={TextField}
               {...field}
+              getInputRef={ref}
               size="small"
               decimalScale={2}
               fixedDecimalScale

@@ -28,7 +28,6 @@ import { usePostVariazione } from 'src/hooks/usePostVariazione';
 import { usePutVariazione } from 'src/hooks/usePutVariazione';
 import { useDeleteVariazione } from 'src/hooks/useDeleteVariazione';
 import { useGetStockStati } from 'src/hooks/useGetStockStati';
-import { Variazione } from 'src/types/Variazione';
 import { STOCK_ENABLED } from 'src/utils/const';
 
 type ProdottoVariazioneFormProps = {
@@ -40,6 +39,14 @@ type ProdottoVariazioneFormProps = {
   onSubmitSuccess?: () => void;
 };
 
+/**
+ * Verifica se un attributo è utilizzato per le variazioni
+ * Gestisce diversi formati: boolean, number, string
+ */
+const isAttributeUsedForVariation = (variation: any): boolean => {
+  return variation === true || variation === 1 || variation === '1' || variation === 'true';
+};
+
 export function ProdottoVariazioneForm({
   open,
   onClose,
@@ -48,7 +55,7 @@ export function ProdottoVariazioneForm({
   prodotto,
   onSubmitSuccess,
 }: ProdottoVariazioneFormProps) {
-  const { control, handleSubmit, reset, setValue, watch } = useForm<any>({
+  const { control, handleSubmit, reset, setValue, watch, getValues } = useForm<any>({
     defaultValues: {
       id: undefined,
       sku: '',
@@ -80,22 +87,14 @@ export function ProdottoVariazioneForm({
 
   useEffect(() => {
     const initForm = async () => {
+      // Aspetta che la modale sia aperta E che i dati siano completamente caricati
       if (open) {
         try {
-          if (variazione && variazioneSelezionata && prodotto) {
+          if (variazione && variazioneSelezionata && !isLoadingVariazione && prodotto) {
             // PRENDI TUTTI gli attributi del prodotto che usano le variazioni
-            const attributiArricchiti =
+            const attributiConValori =
               prodotto.attributes
-                ?.filter((attr: any) => {
-                  // Gestisci sia boolean che stringhe/numeri
-                  const isVariation =
-                    attr.variation === true ||
-                    attr.variation === 1 ||
-                    attr.variation === '1' ||
-                    attr.variation === 'true';
-
-                  return isVariation;
-                })
+                ?.filter((attr: any) => isAttributeUsedForVariation(attr.variation))
                 .map((prodottoAttr: any) => {
                   // Cerca se questo attributo ha già un valore salvato nella variazione
                   const varAttr = variazioneSelezionata.attributes?.find((vAttr: any) => {
@@ -119,7 +118,7 @@ export function ProdottoVariazioneForm({
 
             const formValues = {
               ...variazioneSelezionata,
-              attributes: attributiArricchiti,
+              attributes: attributiConValori,
               // Se lo SKU è uguale a quello del prodotto padre, non impostarlo (lascialo vuoto per ereditare)
               sku: variazioneSelezionata.sku === prodotto.sku ? '' : variazioneSelezionata.sku,
               // Gestisci manageStock: converte in booleano (true se è esplicitamente true, false altrimenti)
@@ -142,16 +141,7 @@ export function ProdottoVariazioneForm({
 
             const attributiVariazione =
               prodotto.attributes
-                ?.filter((attr: any) => {
-                  // Gestisci sia boolean che stringhe/numeri
-                  const isVariation =
-                    attr.variation === true ||
-                    attr.variation === 1 ||
-                    attr.variation === '1' ||
-                    attr.variation === 'true';
-
-                  return isVariation;
-                })
+                ?.filter((attr: any) => isAttributeUsedForVariation(attr.variation))
                 .map((attr: any) => ({
                   id: attr.id || 0,
                   name: attr.name,
@@ -178,25 +168,30 @@ export function ProdottoVariazioneForm({
     };
 
     initForm();
-  }, [open, variazione, prodotto_id, variazioneSelezionata, prodotto, reset]);
+  }, [
+    open,
+    variazione?.id,
+    prodotto_id,
+    variazioneSelezionata?.id,
+    variazioneSelezionata?.stockQuantity,
+    variazioneSelezionata?.manageStock,
+    prodotto?.id,
+    isLoadingVariazione,
+    reset,
+  ]);
 
   const onSubmit = async (data: any) => {
     try {
-      // // Validazione: tutti gli attributi devono avere un'opzione selezionata
-      const attributiNonSelezionati = data.attributes?.filter((attr: any) => !attr.option) || [];
-      if (attributiNonSelezionati.length > 0) {
-        alert("Seleziona un'opzione per tutti gli attributi prima di salvare");
-        return;
-      }
-
       // Prepara i dati nel formato corretto per l'API
       const formattedData: any = {
         attributes:
-          data.attributes?.map((attr: any) => ({
-            id: attr.id,
-            name: attr.name,
-            option: attr.option,
-          })) || [],
+          data.attributes
+            ?.filter((attr: any) => attr.option && attr.option.trim() !== '') // Escludi attributi senza opzione
+            ?.map((attr: any) => ({
+              id: attr.id,
+              name: attr.name,
+              option: attr.option,
+            })) || [],
         manageStock: data.manageStock ? true : 'parent',
       };
 
@@ -266,7 +261,6 @@ export function ProdottoVariazioneForm({
 
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
-          {JSON.stringify(variazione)}
           {variazione?.id && (
             <Grid container spacing={2} sx={{ mt: 1, mb: 1 }}>
               <Grid item xs={12} md={12}>
@@ -368,9 +362,10 @@ export function ProdottoVariazioneForm({
                   <Controller
                     name="regularPrice"
                     control={control}
-                    render={({ field }) => (
+                    render={({ field: { ref, ...field } }) => (
                       <NumericFormat
                         {...field}
+                        getInputRef={ref}
                         customInput={TextField}
                         fullWidth
                         thousandSeparator="."
@@ -387,9 +382,10 @@ export function ProdottoVariazioneForm({
                   <Controller
                     name="salePrice"
                     control={control}
-                    render={({ field }) => (
+                    render={({ field: { ref, ...field } }) => (
                       <NumericFormat
                         {...field}
+                        getInputRef={ref}
                         customInput={TextField}
                         fullWidth
                         label="Prezzo Scontato"
@@ -430,41 +426,46 @@ export function ProdottoVariazioneForm({
                     />
                   </Grid>
 
-                  {manageStock ? (
-                    <Grid item xs={12} md={3}>
-                      <Controller
-                        name="stockQuantity"
-                        control={control}
-                        render={({ field }) => (
+                  <Grid item xs={12} md={3} sx={{ display: manageStock ? 'block' : 'none' }}>
+                    <Controller
+                      name="stockQuantity"
+                      control={control}
+                      render={({ field }) => {
+                        return (
                           <TextField
                             {...field}
                             type="number"
                             fullWidth
                             label="Quantità magazzino"
+                            value={field.value ?? 0}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? 0 : Number(e.target.value);
+                              field.onChange(value);
+                            }}
                           />
-                        )}
-                      />
-                    </Grid>
-                  ) : (
-                    <Grid item xs={12} md={3}>
-                      <Controller
-                        name="stockStatus"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControl fullWidth>
-                            <InputLabel>Stato Stock</InputLabel>
-                            <Select {...field} label="Stato Stock">
-                              {stockStati.map((stato) => (
-                                <MenuItem key={stato.value} value={stato.value}>
-                                  {stato.name}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        )}
-                      />
-                    </Grid>
-                  )}
+                        );
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={3} sx={{ display: !manageStock ? 'block' : 'none' }}>
+                    <Controller
+                      name="stockStatus"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControl fullWidth>
+                          <InputLabel>Stato Stock</InputLabel>
+                          <Select {...field} label="Stato Stock">
+                            {stockStati.map((stato) => (
+                              <MenuItem key={stato.value} value={stato.value}>
+                                {stato.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+                    />
+                  </Grid>
                 </Grid>
               </AccordionDetails>
             </Accordion>

@@ -36,7 +36,7 @@ export function AttributiView() {
     handleSearch,
   } = usePaginatedTable({
     initialPage: 0,
-    initialRowsPerPage: 25,
+    initialRowsPerPage: 999,
   });
 
   const { data, isFetching, isRefetching } = useGetAttributi(

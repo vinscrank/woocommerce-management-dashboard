@@ -89,14 +89,12 @@ export function ProdottoVariazioniDatatable({
       const updatedVariazioni = arrayMove(localVariazioni, oldIndex, newIndex).map(
         (item, index) => ({
           ...item,
-          menu_order: index + 1,
+          menuOrder: index + 1,
         })
       );
 
-      // Aggiorna lo stato locale immediatamente
       setLocalVariazioni(updatedVariazioni);
-      // Invia l'aggiornamento al server
-      //batchUpdate({ variazioni: updatedVariazioni });
+      batchUpdate({ variazioni: updatedVariazioni });
     }
   };
 
@@ -117,7 +115,7 @@ export function ProdottoVariazioniDatatable({
     { id: 'id', label: 'ID' },
     { id: 'attributi', label: 'Attributi' },
     { id: 'sku', label: 'SKU' },
-    // ...(STOCK_ENABLED === '1' ? [{ id: 'stock_quantity', label: 'Qt. magazzino' }] : []),
+    ...(STOCK_ENABLED === '1' ? [{ id: 'stock_quantity', label: 'Qt. magazzino' }] : []),
     { id: 'regular_price', label: 'Prezzo Listino' },
     { id: 'sale_price', label: 'Prezzo Saldo' },
     { id: 'on_sale', label: 'Saldo' },

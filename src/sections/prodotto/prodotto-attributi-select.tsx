@@ -134,12 +134,12 @@ export function ProdottoAttributiSelect({
             );
           })}
 
-          <PaginatedSelectLoadMore
+          {/* <PaginatedSelectLoadMore
             hasMore={hasMoreAttributi}
             isLoading={isFetchingAttributi}
             onLoadMore={loadMoreAttributi}
             loadMoreText="Carica altri attributi"
-          />
+          /> */}
         </Select>
         {helperText && (
           <Box sx={{ mt: 0.5, fontSize: '0.75rem', color: 'error.main' }}>{helperText}</Box>
