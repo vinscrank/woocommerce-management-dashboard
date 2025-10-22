@@ -26,7 +26,6 @@ const fetchProdotti = async (
     const trimmedSearch = search?.trim();
     const searchParam = trimmedSearch && trimmedSearch.length > 0 ? trimmedSearch : undefined;
 
-    console.log('🔍 Ricerca inviata:', searchParam);
 
     const response = await axiosInstance.get(`${API_BASE_PREFIX}/${ecommerceId}/products`, {
         params: {
@@ -37,10 +36,6 @@ const fetchProdotti = async (
             ...(searchParam && { search: searchParam }),
         },
     });
-
-    console.log('📦 Risultati ricevuti:', response.data.data?.items?.length || 0, 'prodotti');
-    console.log('🔗 URL richiesta:', response.config.url);
-    console.log('🔗 Params:', response.config.params);
 
     return response.data.data;
 };

@@ -125,3 +125,98 @@ export const keepOnlyWritableFields = (variazioneData: any): any => {
   return cleanedData;
 };
 
+/**
+ * Sanitizza i dati di una variazione prima dell'invio all'API
+ * @param variazioneData - Dati della variazione da sanitizzare
+ * @returns Oggetto variazione sanitizzato
+ */
+export const sanitizeVariazioneData = (variazioneData: any): any => {
+  const sanitized = keepOnlyWritableFields(variazioneData);
+
+  // Converti i prezzi in stringhe se sono numeri
+  if (typeof sanitized.regularPrice === 'number') {
+    sanitized.regularPrice = sanitized.regularPrice.toFixed(2).toString();
+  }
+  if (typeof sanitized.salePrice === 'number') {
+    sanitized.salePrice = sanitized.salePrice.toFixed(2).toString();
+  }
+
+  // NOTA: Mantieni le stringhe vuote per i prezzi - possono essere usate per rimuovere i prezzi
+  // Rimuovi solo null/undefined
+  if (sanitized.salePrice === null || sanitized.salePrice === undefined) {
+    delete sanitized.salePrice;
+  }
+  if (sanitized.regularPrice === null || sanitized.regularPrice === undefined) {
+    delete sanitized.regularPrice;
+  }
+
+  // Rimuovi campi null che potrebbero causare problemi
+  if (sanitized.manageStock === null || sanitized.manageStock === undefined) {
+    delete sanitized.manageStock;
+  }
+
+  // Assicurati che weight e shippingClass siano stringhe o rimossi se null/undefined
+  // Mantieni le stringhe vuote
+  if (sanitized.weight === null || sanitized.weight === undefined) {
+    delete sanitized.weight;
+  }
+  if (sanitized.shippingClass === null || sanitized.shippingClass === undefined) {
+    delete sanitized.shippingClass;
+  }
+
+  // Assicurati che stockQuantity sia un numero
+  if (typeof sanitized.stockQuantity === 'string') {
+    sanitized.stockQuantity = parseInt(sanitized.stockQuantity, 10);
+  }
+
+  return sanitized;
+};
+
+/**
+ * Sanitizza e valida i dati del prodotto prima dell'invio all'API
+ * @param prodottoData - Dati del prodotto da sanitizzare
+ * @returns Oggetto prodotto sanitizzato
+ */
+export const sanitizeProdottoData = (prodottoData: any): any => {
+  const sanitized = { ...prodottoData };
+
+  // Assicurati che i campi critici siano presenti
+  if (!sanitized.status || sanitized.status.trim() === '') {
+    sanitized.status = 'draft'; // Default a bozza se non specificato
+  }
+  if (!sanitized.type || sanitized.type.trim() === '') {
+    sanitized.type = 'simple'; // Default a semplice se non specificato
+  }
+
+  // Assicurati che brands sia nel formato corretto (array di oggetti con solo id)
+  // NOTA: Mantieni l'array vuoto [] se presente per indicare la rimozione di tutti i brands
+  if (Array.isArray(sanitized.brands)) {
+    if (sanitized.brands.length > 0) {
+      sanitized.brands = sanitized.brands.map((brand: any) => ({ id: brand.id }));
+    }
+    // Se brands.length === 0, l'array vuoto viene mantenuto così com'è
+  }
+
+  // Pulisci i metaData rimuovendo quelli con valori vuoti o solo spazi
+  if (sanitized.metaData && Array.isArray(sanitized.metaData)) {
+    sanitized.metaData = sanitized.metaData
+      .filter((meta: any) => {
+        // Mantieni solo i metaData con valori non vuoti (e non solo spazi)
+        const value = typeof meta.value === 'string' ? meta.value.trim() : meta.value;
+        return value !== null && value !== undefined && value !== '';
+      })
+      .map((meta: any) => ({
+        ...meta,
+        // Fai trim del valore se è stringa
+        value: typeof meta.value === 'string' ? meta.value.trim() : meta.value,
+      }));
+
+    // Se non ci sono metaData validi, rimuovi completamente l'array
+    if (sanitized.metaData.length === 0) {
+      delete sanitized.metaData;
+    }
+  }
+
+  return sanitized;
+};
+

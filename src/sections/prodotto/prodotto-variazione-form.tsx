@@ -83,10 +83,6 @@ export function ProdottoVariazioneForm({
       if (open) {
         try {
           if (variazione && variazioneSelezionata && prodotto) {
-            console.log('=== DEBUG VARIAZIONE EDIT ===');
-            console.log('Tutti gli attributi del prodotto:', prodotto.attributes);
-            console.log('Attributi della variazione salvata:', variazioneSelezionata.attributes);
-
             // PRENDI TUTTI gli attributi del prodotto che usano le variazioni
             const attributiArricchiti =
               prodotto.attributes
@@ -97,9 +93,7 @@ export function ProdottoVariazioneForm({
                     attr.variation === 1 ||
                     attr.variation === '1' ||
                     attr.variation === 'true';
-                  console.log(
-                    `Attributo prodotto "${attr.name}" variation=${attr.variation} -> incluso: ${isVariation}`
-                  );
+
                   return isVariation;
                 })
                 .map((prodottoAttr: any) => {
@@ -120,17 +114,8 @@ export function ProdottoVariazioneForm({
                     option: varAttr?.option || '', // Usa il valore salvato, oppure vuoto
                     options: prodottoAttr.options || [], // Opzioni disponibili dal prodotto
                   };
-
-                  console.log(`Attributo mappato "${prodottoAttr.name}":`, {
-                    trovatoInVariazione: !!varAttr,
-                    option: result.option,
-                    options: result.options.length,
-                  });
-
                   return result;
                 }) || [];
-
-            console.log('Attributi arricchiti in edit (TUTTI dal prodotto):', attributiArricchiti);
 
             const formValues = {
               ...variazioneSelezionata,
@@ -141,8 +126,12 @@ export function ProdottoVariazioneForm({
               manageStock:
                 !!(variazioneSelezionata.manageStock as any) &&
                 (variazioneSelezionata.manageStock as any) !== 'parent',
-              // stockQuantity: usa valore della variazione o 0
-              stockQuantity: Number(variazioneSelezionata.stockQuantity) || 0,
+              // stockQuantity: usa valore della variazione, accetta anche 0
+              stockQuantity:
+                variazioneSelezionata.stockQuantity !== null &&
+                variazioneSelezionata.stockQuantity !== undefined
+                  ? Number(variazioneSelezionata.stockQuantity)
+                  : 0,
               // stockStatus: usa valore della variazione o instock
               stockStatus: String(variazioneSelezionata.stockStatus || 'instock'),
             };
@@ -150,15 +139,6 @@ export function ProdottoVariazioneForm({
             reset(formValues);
           } else if (!variazione && prodotto) {
             // Nuova variazione - popola gli attributi dal prodotto
-            console.log('=== DEBUG VARIAZIONE FORM ===');
-            console.log('Tutti gli attributi del prodotto:', prodotto.attributes);
-            prodotto.attributes?.forEach((attr: any) => {
-              console.log(`Attributo "${attr.name}":`, {
-                variation: attr.variation,
-                type: typeof attr.variation,
-                check: attr.variation === true,
-              });
-            });
 
             const attributiVariazione =
               prodotto.attributes
@@ -169,9 +149,7 @@ export function ProdottoVariazioneForm({
                     attr.variation === 1 ||
                     attr.variation === '1' ||
                     attr.variation === 'true';
-                  console.log(
-                    `Attributo "${attr.name}" variation=${attr.variation} -> incluso: ${isVariation}`
-                  );
+
                   return isVariation;
                 })
                 .map((attr: any) => ({
@@ -180,8 +158,6 @@ export function ProdottoVariazioneForm({
                   option: '', // Da selezionare
                   options: attr.options || [], // Lista opzioni disponibili
                 })) || [];
-
-            console.log('Attributi filtrati per variazione:', attributiVariazione);
 
             reset({
               id: undefined,
@@ -241,8 +217,9 @@ export function ProdottoVariazioneForm({
       if (data.stockStatus) {
         formattedData.stockStatus = data.stockStatus;
       }
-      if (data.manageStock && data.stockQuantity) {
-        formattedData.stockQuantity = data.stockQuantity;
+      // Invia stockQuantity se manageStock è attivo (anche se è 0)
+      if (data.manageStock) {
+        formattedData.stockQuantity = data.stockQuantity !== undefined ? data.stockQuantity : 0;
       }
 
       onClose();
@@ -289,6 +266,7 @@ export function ProdottoVariazioneForm({
 
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
+          {JSON.stringify(variazione)}
           {variazione?.id && (
             <Grid container spacing={2} sx={{ mt: 1, mb: 1 }}>
               <Grid item xs={12} md={12}>

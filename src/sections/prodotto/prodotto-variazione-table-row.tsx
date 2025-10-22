@@ -51,10 +51,11 @@ export const ProdottoVariazioneTableRow = forwardRef<
   }, [row, reset, prodotto?.sku]);
 
   const onSubmit = (data: any) => {
-    // Non inviare lo SKU se è uguale a quello del prodotto padre (per evitare duplicati)
+    // Se lo SKU è uguale al padre o vuoto, invialo come stringa vuota invece di rimuoverlo
     const updatedData = { ...data };
+
     if (updatedData.sku === prodotto?.sku || !updatedData.sku) {
-      delete updatedData.sku;
+      updatedData.sku = ''; // Invia stringa vuota invece di rimuovere il campo
     }
     onUpdate?.(updatedData);
   };
@@ -129,7 +130,7 @@ export const ProdottoVariazioneTableRow = forwardRef<
         />
       </TableCell>
 
-      {STOCK_ENABLED === '1' && (
+      {/* {STOCK_ENABLED === '1' && (
         <TableCell>
           <Controller
             name="stockQuantity"
@@ -145,7 +146,7 @@ export const ProdottoVariazioneTableRow = forwardRef<
             )}
           />
         </TableCell>
-      )}
+      )} */}
 
       <TableCell>
         <Controller

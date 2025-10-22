@@ -4,6 +4,7 @@ import { useRouter } from 'src/routes/hooks';
 import { Prodotto } from 'src/types/Prodotto';
 import axiosInstance from 'src/utils/axios';
 import { API_BASE_PREFIX } from 'src/utils/const';
+import { sanitizeProdottoData } from 'src/utils/prodotto-utils';
 
 
 export function usePostProdotto() {
@@ -13,7 +14,9 @@ export function usePostProdotto() {
 
     return useMutation({
         mutationFn: async (variables: Prodotto) => {
-            const { data: { data } } = await axiosInstance.post<{ data: Prodotto }>(API_BASE_PREFIX+ '/' + ecommerceId + '/products', variables);
+            // Sanitizza i dati prima dell'invio
+            const sanitizedData = sanitizeProdottoData(variables);
+            const { data: { data } } = await axiosInstance.post<{ data: Prodotto }>(API_BASE_PREFIX + '/' + ecommerceId + '/products', sanitizedData);
             return data;
         },
         onSuccess: async (newProdotto, variables) => {

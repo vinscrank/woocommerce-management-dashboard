@@ -27,6 +27,7 @@ import { useAccordionStyles } from 'src/hooks/useAccordionStyles';
 import { ProdottoCategoriesSelect } from './prodotto-categories-select';
 import { ProdottoTagsSelect } from './prodotto-tags-select';
 import { ProdottoBrandsSelect } from './prodotto-brands-select';
+import { ProdottoDescriptionEditor } from './prodotto-description-editor';
 import { useCleanEmptyFields } from 'src/hooks/useCleanEmptyFields';
 import { usePostProdotto } from 'src/hooks/usePostProdotto';
 import { usePutProdotto } from 'src/hooks/usePutProdotto';
@@ -58,7 +59,6 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { SortableImage } from 'src/components/SortableImage/SortableImage';
 import { useExportProdotti } from 'src/hooks/useExportProdotti';
-import { Editor } from '@tinymce/tinymce-react';
 import { useGetFiles } from 'src/hooks/useGetFiles';
 import { UploadModal } from 'src/components/upload-modal/UploadModal';
 import { useDevUrl } from 'src/hooks/useDevUrl';
@@ -215,11 +215,11 @@ export function ProdottoForm({
 
   // Aggiorna i valori del form quando cambiano gli editor
   useEffect(() => {
-    setValue('shortDescription', shortDescription as never);
+    setValue('shortDescription', shortDescription as any);
   }, [shortDescription, setValue]);
 
   useEffect(() => {
-    setValue('description', fullDescription as never);
+    setValue('description', fullDescription as any);
   }, [fullDescription, setValue]);
 
   // Aggiorna metaData quando cambia il prodotto
@@ -381,38 +381,8 @@ export function ProdottoForm({
         }));
     }
 
-    // Assicurati che i campi critici siano presenti
-    if (!formData.status || formData.status.trim() === '') {
-      formData.status = 'draft'; // Default a bozza se non specificato
-    }
-    if (!formData.type || formData.type.trim() === '') {
-      formData.type = 'simple'; // Default a semplice se non specificato
-    }
-
-    // Assicurati che brands sia nel formato corretto (array di oggetti con solo id)
-    if (formData.brands && Array.isArray(formData.brands)) {
-      formData.brands = formData.brands.map((brand: any) => ({ id: brand.id }));
-    }
-
-    // Pulisci i metaData rimuovendo quelli con valori vuoti o solo spazi
-    if (formData.metaData && Array.isArray(formData.metaData)) {
-      formData.metaData = formData.metaData
-        .filter((meta: any) => {
-          // Mantieni solo i metaData con valori non vuoti (e non solo spazi)
-          const value = typeof meta.value === 'string' ? meta.value.trim() : meta.value;
-          return value !== null && value !== undefined && value !== '';
-        })
-        .map((meta: any) => ({
-          ...meta,
-          // Fai trim del valore se è stringa
-          value: typeof meta.value === 'string' ? meta.value.trim() : meta.value,
-        }));
-
-      // Se non ci sono metaData validi, rimuovi completamente l'array
-      if (formData.metaData.length === 0) {
-        delete formData.metaData;
-      }
-    }
+    // La validazione e sanitizzazione dei campi critici (status, type, brands, metaData)
+    // è ora gestita direttamente negli hooks usePutProdotto e usePostProdotto
 
     // Pulisci i campi vuoti prima di inviare
     const cleanedFormData = cleanEmptyFields(formData);
@@ -1028,7 +998,7 @@ export function ProdottoForm({
                         />
                       </Grid>
 
-                      {productType === 'simple' && manageStock && (
+                      {  manageStock && (
                         <Grid item xs={12} md={2}>
                           <TextField
                             fullWidth
@@ -1089,82 +1059,22 @@ export function ProdottoForm({
             </Grid> */}
 
             <Grid item xs={12} pt={0}>
-              <Typography variant="subtitle1" gutterBottom>
-                Descrizione Breve
-              </Typography>
-              <Editor
-                apiKey="fjpuvxdvvk5cjofpllcst021237wbuo6hls9sibgghcqszuc"
+              <ProdottoDescriptionEditor
+                label="Descrizione Breve"
                 value={shortDescription}
-                onEditorChange={(content: any) => setShortDescription(content)}
-                init={{
-                  height: 300,
-                  menubar: false,
-                  plugins: [
-                    'advlist',
-                    'autolink',
-                    'lists',
-                    'link',
-                    'image',
-                    'charmap',
-                    'preview',
-                    'anchor',
-                    'searchreplace',
-                    'visualblocks',
-                    'code',
-                    'fullscreen',
-                    'insertdatetime',
-                    'media',
-                    'table',
-                    'help',
-                    'wordcount',
-                  ],
-                  toolbar:
-                    'undo redo | blocks | ' +
-                    'bold italic forecolor | alignleft aligncenter ' +
-                    'alignright alignjustify | bullist numlist outdent indent | ' +
-                    'removeformat | table | help',
-                  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                }}
+                onChange={setShortDescription}
+                height={300}
+                menubar={false}
               />
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>
-                Descrizione completa
-              </Typography>
-              <Editor
-                apiKey="fjpuvxdvvk5cjofpllcst021237wbuo6hls9sibgghcqszuc"
+              <ProdottoDescriptionEditor
+                label="Descrizione completa"
                 value={fullDescription}
-                onEditorChange={(content: any) => setFullDescription(content)}
-                init={{
-                  height: 500,
-                  menubar: true,
-                  plugins: [
-                    'advlist',
-                    'autolink',
-                    'lists',
-                    'link',
-                    'image',
-                    'charmap',
-                    'preview',
-                    'anchor',
-                    'searchreplace',
-                    'visualblocks',
-                    'code',
-                    'fullscreen',
-                    'insertdatetime',
-                    'media',
-                    'table',
-                    'help',
-                    'wordcount',
-                  ],
-                  toolbar:
-                    'undo redo | blocks | ' +
-                    'bold italic forecolor | alignleft aligncenter ' +
-                    'alignright alignjustify | bullist numlist outdent indent | ' +
-                    'removeformat | table | help',
-                  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                }}
+                onChange={setFullDescription}
+                height={500}
+                menubar={true}
               />
             </Grid>
 

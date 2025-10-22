@@ -117,7 +117,7 @@ export function ProdottoVariazioniDatatable({
     { id: 'id', label: 'ID' },
     { id: 'attributi', label: 'Attributi' },
     { id: 'sku', label: 'SKU' },
-    ...(STOCK_ENABLED === '1' ? [{ id: 'stock_quantity', label: 'Qt. magazzino' }] : []),
+    // ...(STOCK_ENABLED === '1' ? [{ id: 'stock_quantity', label: 'Qt. magazzino' }] : []),
     { id: 'regular_price', label: 'Prezzo Listino' },
     { id: 'sale_price', label: 'Prezzo Saldo' },
     { id: 'on_sale', label: 'Saldo' },

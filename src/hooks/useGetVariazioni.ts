@@ -10,15 +10,7 @@ const fetchVariazioni = async (prodotto_id: string, ecommerceId: number): Promis
     const response = await axiosInstance.get(`${API_BASE_PREFIX}/${ecommerceId}/products/${prodotto_id}/variations`, {
     });
 
-    const variazioni = response.data.data.items as Variazione[] || [];
-
-    // Log per debug - verifica se purchasable è presente
-    if (variazioni.length > 0) {
-        console.log('Prima variazione ricevuta:', variazioni[0]);
-        console.log('Purchasable presente?', 'purchasable' in variazioni[0], variazioni[0].purchasable);
-    }
-
-    return variazioni;
+    return response.data.data.items as Variazione[] || [];
 };
 
 export function useGetVariazioni(prodotto_id: string) {

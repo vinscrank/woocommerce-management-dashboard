@@ -76,8 +76,8 @@ export const ImportProdotti: React.FC = () => {
     const { data: imports = [], refetch: refetchImports } = useQuery({
         queryKey: ['imports'],
         queryFn: async () => {
-            const response = await axiosInstance.get('/imports');
-            return response.data.data;
+            // const response = await axiosInstance.get('/imports');
+            // return response.data.data;
         }
     });
 

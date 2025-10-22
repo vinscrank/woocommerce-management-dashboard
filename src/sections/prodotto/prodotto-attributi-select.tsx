@@ -86,13 +86,6 @@ export function ProdottoAttributiSelect({
     setAttributiPage((prev) => prev + 1)
   );
 
-  // Debug
-  console.log('ProdottoAttributiSelect - attributiPage:', attributiPage);
-  console.log('ProdottoAttributiSelect - perPage:', perPage);
-  console.log('ProdottoAttributiSelect - attributiData:', attributiData);
-  console.log('ProdottoAttributiSelect - allAttributi.length:', allAttributi.length);
-  console.log('ProdottoAttributiSelect - hasMoreAttributi:', hasMoreAttributi);
-
   // Handler per il cambio di selezione
   const handleChange = (selectedId: string) => {
     if (selectedId === '') {
