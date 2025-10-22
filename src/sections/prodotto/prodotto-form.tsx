@@ -23,9 +23,10 @@ import { useState, useEffect } from 'react';
 import { Prodotto } from 'src/types/Prodotto';
 import { Iconify } from 'src/components/iconify';
 import { formatDateTime } from 'src/hooks/use-format-date';
-import { useGetAllCategories } from 'src/hooks/useGetCategorie';
-import { useCategoryTree } from 'src/hooks/useCategoryTree';
 import { useAccordionStyles } from 'src/hooks/useAccordionStyles';
+import { ProdottoCategoriesSelect } from './prodotto-categories-select';
+import { ProdottoTagsSelect } from './prodotto-tags-select';
+import { ProdottoBrandsSelect } from './prodotto-brands-select';
 import { useCleanEmptyFields } from 'src/hooks/useCleanEmptyFields';
 import { usePostProdotto } from 'src/hooks/usePostProdotto';
 import { usePutProdotto } from 'src/hooks/usePutProdotto';
@@ -33,14 +34,10 @@ import { useDeleteProdotto } from 'src/hooks/useDeleteProdotto';
 import { useNavigate } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
-import { useGetAllTags } from 'src/hooks/useGetTags';
-import { useGetAllBrands } from 'src/hooks/useGetBrand';
 import { ProdottoAttributiDatatable } from './prodotto-attributi-table';
 import { ProdottoVariazioniDatatable } from './prodotto-variazioni-datatable';
 import { STOCK_ENABLED } from 'src/utils/const';
 import { removeReadOnlyFields } from 'src/utils/prodotto-utils';
-import { CategorieTreeView, CategoryState } from 'src/components/CategorieTreeView';
-import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { NumericFormat } from 'react-number-format';
 import { useGetProdotto } from 'src/hooks/useGetProdotto';
 import { Media } from 'src/types/File';
@@ -65,7 +62,6 @@ import { Editor } from '@tinymce/tinymce-react';
 import { useGetFiles } from 'src/hooks/useGetFiles';
 import { UploadModal } from 'src/components/upload-modal/UploadModal';
 import { useDevUrl } from 'src/hooks/useDevUrl';
-import { Categoria } from 'src/types/Categoria';
 import { useProdottoStatus } from 'src/hooks/useProdottoStatus';
 import { useGetStockStati } from 'src/hooks/useGetStockStati';
 import {
@@ -182,13 +178,6 @@ export function ProdottoForm({
     { name: CatalogVisibilityLabel[CatalogVisibility.HIDDEN], value: CatalogVisibility.HIDDEN },
   ];
 
-  const { data: categorie } = useGetAllCategories();
-
-  // Costruisci l'albero gerarchico delle categorie usando l'hook
-  const categorieTree = useCategoryTree(categorie);
-
-  const { data: tags, isFetching, isRefetching } = useGetAllTags();
-  const { data: brands } = useGetAllBrands();
   const { mutate: storeProdotto, isPending: isStoreLoading } = usePostProdotto();
   const { mutate: updateProdotto, isPending: isUpdateLoading } = usePutProdotto(
     prodotto?.id as number
@@ -221,8 +210,7 @@ export function ProdottoForm({
     }) || []
   );
 
-  // Aggiungi questo stato per gestire l'apertura/chiusura della modal
-  const [isCategorieModalOpen, setIsCategorieModalOpen] = useState(false);
+  // Stato per gestire l'apertura/chiusura della modal upload
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Aggiorna i valori del form quando cambiano gli editor
@@ -323,9 +311,6 @@ export function ProdottoForm({
     // Rimuovi campi read-only prima di inviare
     const cleanedData = removeReadOnlyFields(formData);
 
-    console.log('Dati puliti prima invio:', cleanedData);
-    console.log('metaData presente?', 'metaData' in cleanedData, 'meta_data' in cleanedData);
-
     if (prodotto?.id) {
       updateProdotto(
         { id: prodotto.id.toString(), data: cleanedData },
@@ -359,17 +344,6 @@ export function ProdottoForm({
       return;
     }
 
-    // Conferma per prodotti eliminati
-    // if (prodotto?.deleted === true) {
-    //   if (
-    //     !window.confirm(
-    //       'Il prodotto non è presente su Woocomerce. Vuoi procedere con la pubblicazione su Woocomerce?'
-    //     )
-    //   ) {
-    //     return;
-    //   }
-    // }
-
     const formData = {
       ...data,
       // immagini_nomi: data.immagini_nomi_string.split(','),
@@ -395,43 +369,16 @@ export function ProdottoForm({
       metaData: metaData,
     };
 
-    // Trasforma categories da oggetto a array nel formato WooCommerce
-    if (data.categories && typeof data.categories === 'object' && !Array.isArray(data.categories)) {
-      const selectedIds = Object.keys(data.categories).filter((id) => data.categories[id]?.checked);
-      formData.categories = selectedIds
-        .map((id) => {
-          const categoria = categorie?.find((cat) => cat.id?.toString() === id);
-          return categoria
-            ? {
-                id: categoria.id,
-                name: categoria.name,
-                slug: categoria.slug,
-              }
-            : null;
-        })
-        .filter(Boolean);
-    } else if (Array.isArray(data.categories)) {
-      // Se è già un array, assicurati che abbia il formato corretto
+    // Trasforma categories nel formato WooCommerce
+    // Il componente ProdottoCategoriesSelect ritorna già il formato corretto
+    if (Array.isArray(data.categories)) {
       formData.categories = data.categories
-        .map((cat: any) => {
-          if (typeof cat === 'object' && cat.id && cat.name && cat.slug) {
-            return { id: cat.id, name: cat.name, slug: cat.slug };
-          } else if (typeof cat === 'object' && cat.id) {
-            // Ha solo l'id, trova i dettagli completi
-            const categoria = categorie?.find((c) => c.id === cat.id);
-            return categoria
-              ? { id: categoria.id, name: categoria.name, slug: categoria.slug }
-              : null;
-          } else if (typeof cat === 'number' || typeof cat === 'string') {
-            // È solo un id
-            const categoria = categorie?.find((c) => c.id?.toString() === cat.toString());
-            return categoria
-              ? { id: categoria.id, name: categoria.name, slug: categoria.slug }
-              : null;
-          }
-          return null;
-        })
-        .filter(Boolean);
+        .filter((cat: any) => cat && cat.id && cat.name && cat.slug)
+        .map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+        }));
     }
 
     // Assicurati che i campi critici siano presenti
@@ -824,160 +771,27 @@ export function ProdottoForm({
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel id="tags-label">Tags</InputLabel>
-                <Select
-                  labelId="tags-label"
-                  id="tags"
-                  label="Tags"
-                  multiple
-                  value={watch('tags')?.map((tag: any) => tag.id?.toString()) || []}
-                  onChange={(e) => {
-                    const selectedIds = e.target.value as string[];
-                    const selectedTags = selectedIds
-                      .map((id) => tags?.find((tag) => tag.id?.toString() === id))
-                      .filter(Boolean)
-                      .map((tag) => ({
-                        id: tag!.id,
-                        name: tag!.name,
-                        slug: tag!.slug,
-                      }));
-                    setValue('tags', selectedTags as any);
-                  }}
-                  renderValue={(selected: string[]) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value: string) => (
-                        <Chip
-                          key={value}
-                          label={tags?.find((tag) => tag.id?.toString() === value)?.name || value}
-                        />
-                      ))}
-                    </Box>
-                  )}
-                >
-                  {tags?.map((tag) => (
-                    <MenuItem key={tag.id} value={tag.id?.toString() || ''}>
-                      {tag.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <ProdottoTagsSelect
+                value={watch('tags')}
+                onChange={(tags) => setValue('tags', tags as any)}
+                perPage={2}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel id="brands-label">Brands</InputLabel>
-                <Select
-                  labelId="brands-label"
-                  id="brands"
-                  label="Brands"
-                  multiple
-                  value={watch('brands')?.map((b) => b.id?.toString()) || []}
-                  onChange={(e) => {
-                    const selectedIds = e.target.value as string[];
-                    const selectedBrands = selectedIds
-                      .map((id) => brands?.find((b) => b.id?.toString() === id))
-                      .filter(Boolean)
-                      .map((brand) => ({
-                        id: brand!.id,
-                        name: brand!.name,
-                        slug: brand!.slug,
-                      }));
-                    setValue('brands', selectedBrands as any);
-                  }}
-                  renderValue={(selected: string[]) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value: string) => (
-                        <Chip
-                          key={value}
-                          label={brands?.find((b) => b.id?.toString() === value)?.name || value}
-                        />
-                      ))}
-                    </Box>
-                  )}
-                >
-                  {brands?.map((brand) => (
-                    <MenuItem key={brand.id} value={brand.id?.toString() || ''}>
-                      {brand.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <ProdottoBrandsSelect
+                value={watch('brands')}
+                onChange={(brands) => setValue('brands', brands as any)}
+                perPage={2}
+              />
             </Grid>
 
-            <Grid item xs={12} md={6} mt={1}>
-              <Button
-                variant="outlined"
-                onClick={() => setIsCategorieModalOpen(true)}
-                startIcon={<Iconify icon="eva:list-fill" />}
-              >
-                Gestisci Categorie
-              </Button>
-
-              <GenericModal
-                title="Gestione Categorie"
-                open={isCategorieModalOpen}
-                onClose={() => setIsCategorieModalOpen(false)}
-                maxWidth="xs"
-              >
-                <Box sx={{ p: 2 }}>
-                  <FormControl fullWidth>
-                    <CategorieTreeView
-                      categorie={categorieTree}
-                      selectedStates={(() => {
-                        const currentCategories = watch('categories');
-
-                        // Se currentCategories è un oggetto Record<string, CategoryState>, ritornalo
-                        if (
-                          currentCategories &&
-                          typeof currentCategories === 'object' &&
-                          !Array.isArray(currentCategories)
-                        ) {
-                          return currentCategories as Record<string, CategoryState>;
-                        }
-
-                        // Se è un array, convertilo in Record<string, CategoryState>
-                        if (Array.isArray(currentCategories)) {
-                          return currentCategories.reduce(
-                            (acc: Record<string, CategoryState>, cat: any) => ({
-                              ...acc,
-                              [cat.id]: { checked: true, partialChecked: false },
-                            }),
-                            {}
-                          );
-                        }
-
-                        return {};
-                      })()}
-                      onCategorieChange={(newSelected) => {
-                        const validatedSelection = Object.entries(newSelected).reduce(
-                          (acc, [id, state]) => {
-                            if (state.checked || state.partialChecked) {
-                              acc[id] = {
-                                checked: Boolean(state.checked),
-                                partialChecked: Boolean(state.partialChecked),
-                              };
-                            }
-                            return acc;
-                          },
-                          {} as Record<string, CategoryState>
-                        );
-
-                        // Salva come oggetto, verrà trasformato in array in handleFormSubmit
-                        setValue('categories', validatedSelection as any);
-                      }}
-                    />
-                  </FormControl>
-                  <Button
-                    sx={{ mt: 2 }}
-                    fullWidth
-                    variant="contained"
-                    onClick={() => setIsCategorieModalOpen(false)}
-                  >
-                    Conferma selezione
-                  </Button>
-                </Box>
-              </GenericModal>
+            <Grid item xs={12} md={6}>
+              <ProdottoCategoriesSelect
+                value={watch('categories')}
+                onChange={(categories) => setValue('categories', categories as any)}
+                perPage={5}
+              />
             </Grid>
 
             {productType === 'simple' && (

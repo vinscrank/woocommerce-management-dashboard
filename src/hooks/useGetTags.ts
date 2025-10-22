@@ -1,13 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Tag } from 'src/types/Tag';
+import { PaginatedResponse } from 'src/types/PaginetedResponse';
 import axiosInstance from 'src/utils/axios';
 import { API_BASE_PREFIX } from 'src/utils/const';
 import { useWorkspace } from 'src/context/WorkspaceContext';
-
-interface PaginatedResponse<T> {
-    items: T[];
-    totalItems: number;
-}
 
 const fetchTags = async (
     ecommerceId: number | null,
@@ -30,9 +26,16 @@ const fetchTags = async (
         params,
     });
 
+    const items = data.data.items || [];
+    const totalItems = data.data.totalItems || items.length || 0;
+    const totalPages = Math.ceil(totalItems / perPage);
+
     return {
-        items: data.data.items || [],
-        totalItems: data.data.totalItems || data.data.items?.length || 0,
+        items,
+        currentPage: page,
+        itemsInPage: items.length,
+        totalItems,
+        totalPages,
     };
 };
 
@@ -52,7 +55,7 @@ export const useGetAllTags = () => {
     return useQuery<Tag[], Error>({
         queryKey: ['tags', 'all'],
         queryFn: async () => {
-            const result = await fetchTags(ecommerceId, 1, 100, '');
+            const result = await fetchTags(ecommerceId, 1, 3, '');
             return result.items;
         },
         enabled: !!ecommerceId,

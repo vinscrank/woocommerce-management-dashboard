@@ -8,15 +8,16 @@ import { useWorkspace } from 'src/context/WorkspaceContext';
 
 const fetchCategoria = async (id: number, ecommerceId: number | null): Promise<Categoria[]> => {
     const { data } = await axiosInstance.get(`${API_BASE_PREFIX}/${ecommerceId}/products/categories/${id}`);
-    return data.data;
+    const categoria = data.data;
+    return Array.isArray(categoria) ? categoria : [categoria];
 };
 
 export const useGetCategoria = (id: number) => {
-
     const { ecommerceId } = useWorkspace();
+
     return useQuery<Categoria[], Error>({
-        queryKey: ['categoria', id],
+        queryKey: ['categoria', id, ecommerceId],
         queryFn: () => fetchCategoria(id, ecommerceId),
-        enabled: !!id,
+        enabled: !!id && !!ecommerceId,
     });
 }; 

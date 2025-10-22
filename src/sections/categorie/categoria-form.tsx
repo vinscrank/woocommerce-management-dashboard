@@ -1,30 +1,14 @@
-import {
-  Grid,
-  TextField,
-  Box,
-  Button,
-  Typography,
-  Chip,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  IconButton,
-} from '@mui/material';
-import { Categoria, Immagine } from 'src/types/Categoria';
+import { Grid, TextField, Box, Button, Typography, IconButton } from '@mui/material';
+import { Categoria } from 'src/types/Categoria';
 import { useForm } from 'react-hook-form';
-import { Icon } from '@iconify/react';
-
-import { InfoLabel } from 'src/components/InfoLabel';
 import { usePutCategoria } from 'src/hooks/usePutCategoria';
 import { usePostCategoria } from 'src/hooks/usePostCategoria';
 import { Iconify } from 'src/components/iconify';
-import { useGetAllCategories } from 'src/hooks/useGetCategorie';
-import { ca } from 'date-fns/locale';
+import { CategoriaParentSelect } from './categoria-parent-select';
 import { useUploadCategoriaImmagine } from 'src/hooks/useUploadCategoriaImmagine';
 import { useGetCategoria } from 'src/hooks/useGetCategoria';
 import { UploadModal } from 'src/components/upload-modal/UploadModal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Media } from 'src/types/File';
 import { useDevUrl } from 'src/hooks/useDevUrl';
 
@@ -41,11 +25,12 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
     formState: { errors },
     setValue,
     watch,
+    reset,
   } = useForm({
     defaultValues: {
       name: categoria?.name || '',
       id: categoria?.id || '',
-      parent: categoria?.parent || null,
+      parent: categoria?.parent && categoria.parent !== 0 ? categoria.parent : null,
       description: categoria?.description || '',
       image: categoria?.image || null,
       // menuOrder: categoria?.menuOrder || '',
@@ -61,10 +46,22 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
   const { mutate: createCategoria, isPending: isPosting } = usePostCategoria();
   const { mutate: updateCategoria, isPending: isUpdating } = usePutCategoria();
   const { data: categoriaData } = useGetCategoria(categoria?.id as number);
-  const { mutate: uploadCategoriaImmagine, isPending: isUploading } = useUploadCategoriaImmagine();
   const { convertUrl } = useDevUrl();
 
-  const { data: categorie } = useGetAllCategories();
+  // Aggiorna il form quando arrivano nuovi dati dalla categoria o dall'API
+  useEffect(() => {
+    const categoriaToUse = categoriaData?.[0] || categoria;
+    if (categoriaToUse) {
+      reset({
+        name: categoriaToUse?.name || '',
+        id: categoriaToUse?.id || '',
+        parent:
+          categoriaToUse?.parent && categoriaToUse.parent !== 0 ? categoriaToUse.parent : null,
+        description: categoriaToUse?.description || '',
+        image: categoriaToUse?.image || null,
+      });
+    }
+  }, [categoria, categoriaData, reset]);
 
   const onSubmitForm = async (data: any) => {
     if (categoria) {
@@ -109,8 +106,8 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
         alt: selectedImage.altText || '',
       };
 
-      // Aggiorna il campo image nel form
-      setValue('image', imageData as any);
+      // Aggiorna il campo image nel form con shouldDirty: true per forzare l'inclusione
+      setValue('image', imageData as any, { shouldDirty: true, shouldTouch: true });
 
       // Chiudi la modale e resetta i file selezionati
       setIsUploadModalOpen(false);
@@ -120,7 +117,7 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
   };
 
   const handleImageDelete = () => {
-    setValue('image', null);
+    setValue('image', null, { shouldDirty: true, shouldTouch: true });
   };
 
   return (
@@ -162,26 +159,13 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
         </Grid>
 
         <Grid item xs={12} md={12}>
-          <FormControl fullWidth>
-            <InputLabel id="parent-label">Categoria Genitore</InputLabel>
-            <Select
-              labelId="parent-label"
-              label="Categoria Genitore"
-              {...register('parent')}
-              value={watch('parent') || ''}
-            >
-              <MenuItem value="" disabled>
-                Seleziona categoria genitore
-              </MenuItem>
-              {categorie
-                ?.filter((cat) => cat.id !== categoria?.id)
-                .map((categoria) => (
-                  <MenuItem key={categoria.id} value={categoria.id}>
-                    {categoria.name}
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
+          <CategoriaParentSelect
+            key={categoria?.id || 'new'} // Forza re-mount quando cambia categoria
+            value={watch('parent')}
+            onChange={(parentId) => setValue('parent', parentId as any, { shouldDirty: true })}
+            currentCategoriaId={categoria?.id}
+            perPage={5}
+          />
         </Grid>
 
         {/* Image Upload */}

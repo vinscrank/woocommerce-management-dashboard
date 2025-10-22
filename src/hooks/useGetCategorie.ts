@@ -2,13 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useWorkspace } from 'src/context/WorkspaceContext';
 import { Categoria } from 'src/types/Categoria';
+import { PaginatedResponse } from 'src/types/PaginetedResponse';
 import axiosInstance from 'src/utils/axios';
 import { API_BASE_PREFIX } from 'src/utils/const';
-
-interface PaginatedResponse<T> {
-    items: T[];
-    totalItems: number;
-}
 
 const fetchCategories = async (
     ecommerceId: number | null,
@@ -26,15 +22,22 @@ const fetchCategories = async (
     if (search) {
         params.search = search;
     }
-    params.fields = 'id,name,slug,parent';
+    params.fields = 'id,name,slug,parent,image';
 
     const { data } = await axiosInstance.get(`${API_BASE_PREFIX}/${ecommerceId}/products/categories`, {
         params,
     });
 
+    const items = data.data.items || [];
+    const totalItems = data.data.totalItems || items.length || 0;
+    const totalPages = Math.ceil(totalItems / perPage);
+
     return {
-        items: data.data.items || [],
-        totalItems: data.data.totalItems || data.data.items?.length || 0,
+        items,
+        currentPage: page,
+        itemsInPage: items.length,
+        totalItems,
+        totalPages,
     };
 };
 
@@ -48,15 +51,3 @@ export const useGetCategories = (page: number = 1, perPage: number = 25, search:
     });
 };
 
-// Hook per ottenere TUTTE le categorie (per dropdown/select) - retrocompatibilità
-export const useGetAllCategories = () => {
-    const { ecommerceId } = useWorkspace();
-    return useQuery<Categoria[], Error>({
-        queryKey: ['categorie', 'all'],
-        queryFn: async () => {
-            const result = await fetchCategories(ecommerceId, 1, 100, '');
-            return result.items;
-        },
-        enabled: !!ecommerceId,
-    });
-}; 
