@@ -150,11 +150,8 @@ export function ProdottoCategoriesSelect({
       >
         {categoriesWithLevels.map((categoria) => {
           // Mostra il nome con indentazione basata sul livello
-          // Ogni livello aggiunge "— " (2 caratteri + spazio)
           const indent = '—'.repeat(categoria.level);
-          const baseName = categoria.level > 0 ? `${indent} ${categoria.name}` : categoria.name;
-          // Debug: mostra anche ID e parent
-          const displayName = `${baseName} (ID: ${categoria.id}, Parent: ${categoria.parent || 0}, Level: ${categoria.level})`;
+          const displayName = categoria.level > 0 ? `${indent} ${categoria.name}` : categoria.name;
 
           return (
             <MenuItem key={categoria.id} value={categoria.id?.toString() || ''}>

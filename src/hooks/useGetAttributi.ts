@@ -1,13 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useWorkspace } from 'src/context/WorkspaceContext';
 import { Attributo } from 'src/types/Attributo';
+import { PaginatedResponse } from 'src/types/PaginetedResponse';
 import axiosInstance from 'src/utils/axios';
 import { API_BASE_PREFIX } from 'src/utils/const';
-
-interface PaginatedResponse<T> {
-    items: T[];
-    totalItems: number;
-}
 
 const fetchAttributi = async (
     ecommerceId: number | null,
@@ -18,8 +14,8 @@ const fetchAttributi = async (
     const params: any = {
         page,
         perPage,
-        orderBy: 'id',
-        order: 'desc',
+        //  orderBy: 'id',
+        // order: 'desc',
     };
 
     if (search) {
@@ -30,9 +26,16 @@ const fetchAttributi = async (
         params,
     });
 
+    const items = data.data.items || [];
+    const totalItems = data.data.totalItems || items.length || 0;
+    const totalPages = Math.ceil(totalItems / perPage);
+
     return {
-        items: data.data.items || [],
-        totalItems: data.data.totalItems || data.data.items?.length || 0,
+        items,
+        currentPage: page,
+        itemsInPage: items.length,
+        totalItems,
+        totalPages,
     };
 };
 
@@ -40,21 +43,25 @@ const fetchAttributi = async (
 export const useGetAttributi = (page: number = 1, perPage: number = 25, search: string = '') => {
     const { ecommerceId } = useWorkspace();
     return useQuery<PaginatedResponse<Attributo>, Error>({
-        queryKey: ['attributi', page, perPage, search],
+        queryKey: ['attributi', ecommerceId, page, perPage, search],
         queryFn: () => fetchAttributi(ecommerceId, page, perPage, search),
         enabled: !!ecommerceId,
     });
 };
 
-// Hook per ottenere TUTTI gli attributi (per dropdown/select) - retrocompatibilità
-export const useGetAllAttributi = () => {
-    const { ecommerceId } = useWorkspace();
-    return useQuery<Attributo[], Error>({
-        queryKey: ['attributi', 'all'],
-        queryFn: async () => {
-            const result = await fetchAttributi(ecommerceId, 1, 100, '');
-            return result.items;
-        },
-        enabled: !!ecommerceId,
-    });
-}; 
+// /**
+//  * @deprecated Usa useGetAttributi con usePaginatedSelect invece
+//  * Hook per ottenere TUTTI gli attributi (per dropdown/select) - retrocompatibilità
+//  * Limitato a 100 items, usare useGetAttributi per paginazione completa
+//  */
+// export const useGetAllAttributi = () => {
+//     const { ecommerceId } = useWorkspace();
+//     return useQuery<Attributo[], Error>({
+//         queryKey: ['attributi', 'all'],
+//         queryFn: async () => {
+//             const result = await fetchAttributi(ecommerceId, 1, 100, '');
+//             return result.items;
+//         },
+//         enabled: !!ecommerceId,
+//     });
+// }; 

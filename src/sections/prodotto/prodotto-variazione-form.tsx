@@ -83,29 +83,54 @@ export function ProdottoVariazioneForm({
       if (open) {
         try {
           if (variazione && variazioneSelezionata && prodotto) {
-            // Arricchisci gli attributi con le opzioni disponibili dal prodotto
-            const attributiArricchiti =
-              variazioneSelezionata.attributes?.map((varAttr: any) => {
-                // Trova l'attributo corrispondente nel prodotto
-                // Per attributi interni (id=0), usa SOLO il nome
-                // Per attributi globali (id>0), usa ID o nome come fallback
-                const prodottoAttr = prodotto.attributes?.find((pAttr: any) => {
-                  if (!varAttr.id || varAttr.id === 0) {
-                    // Attributo interno: cerca solo per nome
-                    return pAttr.name === varAttr.name;
-                  } else {
-                    // Attributo globale: cerca per ID o nome
-                    return pAttr.id === varAttr.id || pAttr.name === varAttr.name;
-                  }
-                });
+            console.log('=== DEBUG VARIAZIONE EDIT ===');
+            console.log('Tutti gli attributi del prodotto:', prodotto.attributes);
+            console.log('Attributi della variazione salvata:', variazioneSelezionata.attributes);
 
-                return {
-                  id: varAttr.id || 0,
-                  name: varAttr.name,
-                  option: varAttr.option || '', // Opzione selezionata nella variazione
-                  options: prodottoAttr?.options || [], // Opzioni disponibili dal prodotto
-                };
-              }) || [];
+            // PRENDI TUTTI gli attributi del prodotto che usano le variazioni
+            const attributiArricchiti =
+              prodotto.attributes
+                ?.filter((attr: any) => {
+                  // Gestisci sia boolean che stringhe/numeri
+                  const isVariation =
+                    attr.variation === true ||
+                    attr.variation === 1 ||
+                    attr.variation === '1' ||
+                    attr.variation === 'true';
+                  console.log(
+                    `Attributo prodotto "${attr.name}" variation=${attr.variation} -> incluso: ${isVariation}`
+                  );
+                  return isVariation;
+                })
+                .map((prodottoAttr: any) => {
+                  // Cerca se questo attributo ha già un valore salvato nella variazione
+                  const varAttr = variazioneSelezionata.attributes?.find((vAttr: any) => {
+                    if (!prodottoAttr.id || prodottoAttr.id === 0) {
+                      // Attributo interno: confronta per nome
+                      return vAttr.name === prodottoAttr.name;
+                    } else {
+                      // Attributo globale: confronta per ID o nome
+                      return vAttr.id === prodottoAttr.id || vAttr.name === prodottoAttr.name;
+                    }
+                  });
+
+                  const result = {
+                    id: prodottoAttr.id || 0,
+                    name: prodottoAttr.name,
+                    option: varAttr?.option || '', // Usa il valore salvato, oppure vuoto
+                    options: prodottoAttr.options || [], // Opzioni disponibili dal prodotto
+                  };
+
+                  console.log(`Attributo mappato "${prodottoAttr.name}":`, {
+                    trovatoInVariazione: !!varAttr,
+                    option: result.option,
+                    options: result.options.length,
+                  });
+
+                  return result;
+                }) || [];
+
+            console.log('Attributi arricchiti in edit (TUTTI dal prodotto):', attributiArricchiti);
 
             const formValues = {
               ...variazioneSelezionata,
@@ -125,15 +150,38 @@ export function ProdottoVariazioneForm({
             reset(formValues);
           } else if (!variazione && prodotto) {
             // Nuova variazione - popola gli attributi dal prodotto
+            console.log('=== DEBUG VARIAZIONE FORM ===');
+            console.log('Tutti gli attributi del prodotto:', prodotto.attributes);
+            prodotto.attributes?.forEach((attr: any) => {
+              console.log(`Attributo "${attr.name}":`, {
+                variation: attr.variation,
+                type: typeof attr.variation,
+                check: attr.variation === true,
+              });
+            });
+
             const attributiVariazione =
               prodotto.attributes
-                ?.filter((attr: any) => attr.variation === true)
+                ?.filter((attr: any) => {
+                  // Gestisci sia boolean che stringhe/numeri
+                  const isVariation =
+                    attr.variation === true ||
+                    attr.variation === 1 ||
+                    attr.variation === '1' ||
+                    attr.variation === 'true';
+                  console.log(
+                    `Attributo "${attr.name}" variation=${attr.variation} -> incluso: ${isVariation}`
+                  );
+                  return isVariation;
+                })
                 .map((attr: any) => ({
                   id: attr.id || 0,
                   name: attr.name,
                   option: '', // Da selezionare
                   options: attr.options || [], // Lista opzioni disponibili
                 })) || [];
+
+            console.log('Attributi filtrati per variazione:', attributiVariazione);
 
             reset({
               id: undefined,
@@ -241,11 +289,13 @@ export function ProdottoVariazioneForm({
 
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={2} sx={{ mt: 1, mb: 1 }}>
-            <Grid item xs={12} md={12}>
-              <TextField fullWidth label="ID" value={variazione?.id} disabled />
+          {variazione?.id && (
+            <Grid container spacing={2} sx={{ mt: 1, mb: 1 }}>
+              <Grid item xs={12} md={12}>
+                <TextField fullWidth label="ID" value={variazione?.id} disabled />
+              </Grid>
             </Grid>
-          </Grid>
+          )}
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
               <Typography>Attributi </Typography>

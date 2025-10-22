@@ -1,29 +1,13 @@
-import {
-  Grid,
-  TextField,
-  Switch,
-  FormControlLabel,
-  Button,
-  Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Autocomplete,
-} from '@mui/material';
+import { Grid, TextField, Switch, FormControlLabel, Button, Box } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { useState, useEffect, useRef } from 'react';
-import { useGetAllAttributi } from 'src/hooks/useGetAttributi';
 import { useDeleteProdottoAttributo } from 'src/hooks/useDeleteProdottoAttributo';
 import { Prodotto } from 'src/types/Prodotto';
 import { GenericModal } from 'src/components/generic-modal/GenericModal';
 import { useGetAttributoOpzioni } from 'src/hooks/useGetAttributoOpzioni';
 import { AttributoAutocomplete } from 'src/components/AttributoAutocomplete';
 import { OpzioniInputField } from 'src/components/OpzioniInputField';
+import { ProdottoAttributiSelect } from './prodotto-attributi-select';
 
 interface ProdottoAttributoFormProps {
   open: boolean;
@@ -55,7 +39,6 @@ export function ProdottoAttributoForm({
     isAttributoInterno || prodotto_attributo?.attributo?.is_specifico || false
   );
 
-  const { data: attributi } = useGetAllAttributi();
   const { mutate: deleteProdottoAttributo, isPending: isDeleting } =
     useDeleteProdottoAttributo(prodotto);
   const [selectedAttributoId, setSelectedAttributoId] = useState<number | null>(null);
@@ -249,37 +232,23 @@ export function ProdottoAttributoForm({
 
           {!isSpecifico ? (
             <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Attributo</InputLabel>
-                <Controller
-                  name="id"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      disabled={!!prodotto_attributo}
-                      {...field}
-                      label="Attributo"
-                      value={field.value || ''}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        handleAttributoChange(e.target.value);
-                      }}
-                    >
-                      {attributi?.map((attr: any) => (
-                        <MenuItem
-                          key={attr.id}
-                          value={attr.id}
-                          disabled={prodotto?.attributes?.some(
-                            (attribute: any) => attribute.id === attr.id
-                          )}
-                        >
-                          {attr.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-              </FormControl>
+              <Controller
+                name="id"
+                control={control}
+                render={({ field }) => (
+                  <ProdottoAttributiSelect
+                    value={field.value}
+                    onChange={(attributoId) => {
+                      field.onChange(attributoId);
+                      handleAttributoChange(attributoId?.toString() || '');
+                    }}
+                    perPage={2}
+                    prodottoAttributes={prodotto?.attributes || []}
+                    disabled={!!prodotto_attributo}
+                    label="Attributo"
+                  />
+                )}
+              />
             </Grid>
           ) : (
             <Grid item xs={12}>
@@ -307,7 +276,7 @@ export function ProdottoAttributoForm({
             </Grid>
           )}
 
-          {prodottoType === 'variable' && (
+      
             <Grid item xs={12}>
               <FormControlLabel
                 control={
@@ -320,7 +289,7 @@ export function ProdottoAttributoForm({
                 label="Usato nelle variazioni"
               />
             </Grid>
-          )}
+          
 
           <Grid item xs={12}>
             <FormControlLabel
