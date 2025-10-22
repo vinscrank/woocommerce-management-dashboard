@@ -121,7 +121,7 @@ export function ProdottoVariazioniDatatable({
     { id: 'regular_price', label: 'Prezzo Listino' },
     { id: 'sale_price', label: 'Prezzo Saldo' },
     { id: 'on_sale', label: 'Saldo' },
-    // { id: 'purchasable', label: 'Vendita' },
+    { id: 'purchasable', label: 'Vendita' },
     { id: 'actions', label: 'Azioni' },
   ];
 

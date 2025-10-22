@@ -12,8 +12,8 @@ const fetchAttributi = async (
     search: string = ''
 ): Promise<PaginatedResponse<Attributo>> => {
     const params: any = {
-        page,
-        perPage,
+        //page,
+        //perPage,
         //  orderBy: 'id',
         // order: 'desc',
     };
@@ -49,19 +49,3 @@ export const useGetAttributi = (page: number = 1, perPage: number = 25, search: 
     });
 };
 
-// /**
-//  * @deprecated Usa useGetAttributi con usePaginatedSelect invece
-//  * Hook per ottenere TUTTI gli attributi (per dropdown/select) - retrocompatibilità
-//  * Limitato a 100 items, usare useGetAttributi per paginazione completa
-//  */
-// export const useGetAllAttributi = () => {
-//     const { ecommerceId } = useWorkspace();
-//     return useQuery<Attributo[], Error>({
-//         queryKey: ['attributi', 'all'],
-//         queryFn: async () => {
-//             const result = await fetchAttributi(ecommerceId, 1, 100, '');
-//             return result.items;
-//         },
-//         enabled: !!ecommerceId,
-//     });
-// }; 

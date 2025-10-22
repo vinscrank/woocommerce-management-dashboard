@@ -132,23 +132,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/api/woocommerce/{ecommerceId}/products/batch": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: operations["batch_1"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/woocommerce/{ecommerceId}/products/attributes": {
+  "/api/woocommerce/{ecommerceId}/products/tags": {
     parameters: {
       query?: never;
       header?: never;
@@ -164,7 +148,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/api/woocommerce/{ecommerceId}/products/attributes/{attributeId}/terms": {
+  "/api/woocommerce/{ecommerceId}/products/tags/batch": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["batch_1"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/products/categories": {
     parameters: {
       query?: never;
       header?: never;
@@ -180,7 +180,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/api/woocommerce/{ecommerceId}/products/attributes/{attributeId}/terms/batch": {
+  "/api/woocommerce/{ecommerceId}/products/categories/batch": {
     parameters: {
       query?: never;
       header?: never;
@@ -196,7 +196,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/api/woocommerce/{ecommerceId}/products/attributes/batch": {
+  "/api/woocommerce/{ecommerceId}/products/brands": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["index_4"];
+    put?: never;
+    post: operations["create_4"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/products/brands/batch": {
     parameters: {
       query?: never;
       header?: never;
@@ -212,6 +228,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/woocommerce/{ecommerceId}/products/batch": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["batch_4"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/products/attributes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["index_5"];
+    put?: never;
+    post: operations["create_5"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/products/attributes/{attributeId}/terms": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["index_6"];
+    put?: never;
+    post: operations["create_6"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/products/attributes/{attributeId}/terms/batch": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["batch_5"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/products/attributes/batch": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["batch_6"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/woocommerce/{ecommerceId}/media": {
     parameters: {
       query?: never;
@@ -219,9 +315,41 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations["index_4"];
+    get: operations["index_7"];
     put?: never;
-    post: operations["create_4"];
+    post: operations["create_7"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/coupons": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["index_8"];
+    put?: never;
+    post: operations["create_8"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/coupons/batch": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["batch_7"];
     delete?: never;
     options?: never;
     head?: never;
@@ -308,7 +436,7 @@ export interface paths {
     patch: operations["patch_1"];
     trace?: never;
   };
-  "/api/woocommerce/{ecommerceId}/products/attributes/{attributeId}": {
+  "/api/woocommerce/{ecommerceId}/products/tags/{tagId}": {
     parameters: {
       query?: never;
       header?: never;
@@ -324,7 +452,7 @@ export interface paths {
     patch: operations["patch_2"];
     trace?: never;
   };
-  "/api/woocommerce/{ecommerceId}/products/attributes/{attributeId}/terms/{termId}": {
+  "/api/woocommerce/{ecommerceId}/products/categories/{categoryId}": {
     parameters: {
       query?: never;
       header?: never;
@@ -340,7 +468,7 @@ export interface paths {
     patch: operations["patch_3"];
     trace?: never;
   };
-  "/api/woocommerce/{ecommerceId}/media/{productId}": {
+  "/api/woocommerce/{ecommerceId}/products/brands/{brandId}": {
     parameters: {
       query?: never;
       header?: never;
@@ -351,6 +479,70 @@ export interface paths {
     put?: never;
     post?: never;
     delete: operations["delete_4"];
+    options?: never;
+    head?: never;
+    patch: operations["patch_4"];
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/products/attributes/{attributeId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["show_5"];
+    put?: never;
+    post?: never;
+    delete: operations["delete_5"];
+    options?: never;
+    head?: never;
+    patch: operations["patch_5"];
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/products/attributes/{attributeId}/terms/{termId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["show_6"];
+    put?: never;
+    post?: never;
+    delete: operations["delete_6"];
+    options?: never;
+    head?: never;
+    patch: operations["patch_6"];
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/coupons/{couponId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["show_7"];
+    put?: never;
+    post?: never;
+    delete: operations["delete_7"];
+    options?: never;
+    head?: never;
+    patch: operations["patch_7"];
+    trace?: never;
+  };
+  "/api/woocommerce/{ecommerceId}/media/{productId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["show_8"];
+    put?: never;
+    post?: never;
+    delete: operations["delete_8"];
     options?: never;
     head?: never;
     patch?: never;
@@ -510,21 +702,13 @@ export interface components {
       variation?: boolean;
       options?: string[];
     };
-    LinkToCategoryRequest: {
-      /** Format: int32 */
-      id: number;
-    };
     LinkToDefaultAttributeRequest: {
       /** Format: int32 */
       id?: number;
       name: string;
       option: string;
     };
-    LinkToImageRequest: {
-      /** Format: int32 */
-      id: number;
-    };
-    LinkToTagRequest: {
+    LinkToEntityUsingIdRequest: {
       /** Format: int32 */
       id: number;
     };
@@ -534,7 +718,12 @@ export interface components {
       name: string;
       file: string;
     };
-    WooCommerceMetaRequest: Record<string, never>;
+    WooCommerceMetaRequest: {
+      /** Format: int32 */
+      id?: number;
+      key: string;
+      value: string;
+    };
     WooCommerceProductRequest: {
       /** Format: int32 */
       id?: number;
@@ -586,9 +775,10 @@ export interface components {
       /** Format: int32 */
       parentId?: number;
       purchaseNote?: string;
-      categories?: components["schemas"]["LinkToCategoryRequest"][];
-      tags?: components["schemas"]["LinkToTagRequest"][];
-      images?: components["schemas"]["LinkToImageRequest"][];
+      categories?: components["schemas"]["LinkToEntityUsingIdRequest"][];
+      brands?: components["schemas"]["LinkToEntityUsingIdRequest"][];
+      tags?: components["schemas"]["LinkToEntityUsingIdRequest"][];
+      images?: components["schemas"]["LinkToEntityUsingIdRequest"][];
       attributes?: components["schemas"]["LinkToAttributeRequest"][];
       defaultAttributes?: components["schemas"]["LinkToDefaultAttributeRequest"][];
       groupedProducts?: Record<string, never>[];
@@ -632,10 +822,10 @@ export interface components {
       ecommerces?: components["schemas"]["Ecommerce"][];
       authorities?: components["schemas"]["GrantedAuthority"][];
       username?: string;
+      enabled?: boolean;
       accountNonExpired?: boolean;
       accountNonLocked?: boolean;
       credentialsNonExpired?: boolean;
-      enabled?: boolean;
     };
     UserEcommerce: {
       /** Format: int32 */
@@ -656,12 +846,6 @@ export interface components {
       data?: components["schemas"]["WooCommerceProductResponse"];
       message?: string;
       errors?: Record<string, never>;
-    };
-    Category: {
-      /** Format: int32 */
-      id?: number;
-      name?: string;
-      slug?: string;
     };
     DimensionsResponse: {
       length?: string;
@@ -715,7 +899,7 @@ export interface components {
     WooCommerceMetaResponse: {
       /** Format: int32 */
       id?: number;
-      name?: string;
+      key?: string;
       value?: string;
     };
     WooCommerceProductResponse: {
@@ -788,7 +972,8 @@ export interface components {
       /** Format: int32 */
       parentId?: number;
       purchaseNote?: string;
-      categories?: components["schemas"]["Category"][];
+      categories?: components["schemas"]["WoocommerceProductCategoryResponse"][];
+      brands?: components["schemas"]["WoocommerceProductBrandResponse"][];
       tags?: components["schemas"]["WooCommerceTagResponse"][];
       images?: components["schemas"]["WooCommerceImage"][];
       defaultAttributes?: components["schemas"]["WooCommerceDefaultAttributeResponse"][];
@@ -806,6 +991,35 @@ export interface components {
       name?: string;
       slug?: string;
     };
+    WoocommerceProductBrandResponse: {
+      /** Format: int32 */
+      id?: number;
+      name?: string;
+      slug?: string;
+      /** Format: int32 */
+      parent?: number;
+      description?: string;
+      image?: components["schemas"]["WooCommerceImage"];
+      /** Format: int32 */
+      menuOrder?: number;
+      /** Format: int32 */
+      count?: number;
+    };
+    WoocommerceProductCategoryResponse: {
+      /** Format: int32 */
+      id?: number;
+      name?: string;
+      slug?: string;
+      /** Format: int32 */
+      parent?: number;
+      description?: string;
+      display?: string;
+      image?: components["schemas"]["WooCommerceImage"];
+      /** Format: int32 */
+      menuOrder?: number;
+      /** Format: int32 */
+      count?: number;
+    };
     WooCommerceProductVariationRequest: {
       /** Format: int32 */
       id?: number;
@@ -816,6 +1030,7 @@ export interface components {
       dateOnSaleFromGmt?: string;
       dateOnSaleTo?: string;
       dateOnSaleToGmt?: string;
+      status?: string;
       virtual?: boolean;
       downloadable?: boolean;
       downloads?: components["schemas"]["WooCommerceDownloadRequest"][];
@@ -830,15 +1045,13 @@ export interface components {
       stockQuantity?: number;
       stockStatus?: string;
       backorders?: string;
-      soldIndividually?: boolean;
       weight?: string;
       dimensions?: components["schemas"]["DimensionsRequest"];
       shippingClass?: string;
+      image?: components["schemas"]["LinkToEntityUsingIdRequest"];
       attributes?: components["schemas"]["LinkToDefaultAttributeRequest"][];
       /** Format: int32 */
       menuOrder?: number;
-      description?: string;
-      image?: string;
       metaData?: components["schemas"]["WooCommerceMetaRequest"][];
     };
     ApiResponseWooCommerceProductVariationResponse: {
@@ -850,21 +1063,25 @@ export interface components {
     WooCommerceProductVariationResponse: {
       /** Format: int32 */
       id?: number;
+      dateCreated?: string;
+      dateCreatedGmt?: string;
+      dateModified?: string;
+      dateModifiedGmt?: string;
+      description?: string;
+      permalink?: string;
       sku?: string;
+      globalUniqueId?: string;
       price?: string;
       regularPrice?: string;
       salePrice?: string;
       dateOnSaleFrom?: string;
+      dateOnSaleFromGmt?: string;
       dateOnSaleTo?: string;
+      dateOnSaleToGmt?: string;
       onSale?: boolean;
-      status?: string;
-      description?: string;
-      shortDescription?: string;
-      manageStock?: Record<string, never>;
-      /** Format: int32 */
-      stockQuantity?: number;
-      stockStatus?: string;
-      visible?: boolean;
+      /** @enum {string} */
+      status?: "draft" | "pending" | "private" | "publish";
+      purchasable?: boolean;
       virtual?: boolean;
       downloadable?: boolean;
       downloads?: components["schemas"]["WooCommerceDownloadResponse"][];
@@ -872,27 +1089,32 @@ export interface components {
       downloadLimit?: number;
       /** Format: int32 */
       downloadExpiry?: number;
-      taxStatus?: string;
+      /** @enum {string} */
+      taxStatus?: "taxable" | "shipping" | "none";
       taxClass?: string;
-      shippingClass?: string;
-      weight?: string;
-      shippingClassId?: string;
-      dimensions?: components["schemas"]["DimensionsResponse"];
-      shippingRequired?: boolean;
-      shippingTaxable?: boolean;
-      shippingClassSlug?: string;
+      manageStock?: Record<string, never>;
+      /** Format: int32 */
+      stockQuantity?: number;
+      /** @enum {string} */
+      stockStatus?: "instock" | "outofstock" | "onbackorder";
+      /** @enum {string} */
+      backorders?: "no" | "notify" | "yes";
       backordersAllowed?: boolean;
       backordered?: boolean;
-      backorders?: string;
-      soldIndividually?: boolean;
-      purchaseNote?: string;
+      weight?: string;
+      dimensions?: components["schemas"]["DimensionsResponse"];
+      shippingClass?: string;
+      shippingClassId?: string;
+      image?: components["schemas"]["WooCommerceImage"];
       attributes?: components["schemas"]["WooCommerceDefaultAttributeResponse"][];
-      menuOrder?: string;
-      image?: components["schemas"]["WooCommerceImage"][];
-      virtualDownloads?: number[];
-      parentIsVisible?: boolean;
-      parentIsPurchasable?: boolean;
-      get_links?: components["schemas"]["Links"];
+      /** Format: int32 */
+      menuOrder?: number;
+      metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+      createdAt?: string;
+      updatedAt?: string;
+      link?: string;
+      createdAtGmt?: string;
+      updatedAtGmt?: string;
     };
     BatchWoocommerceProductVariationRequest: {
       create?: components["schemas"]["WooCommerceProductVariationRequest"][];
@@ -909,6 +1131,145 @@ export interface components {
       create?: components["schemas"]["WooCommerceProductVariationResponse"][];
       update?: components["schemas"]["WooCommerceProductVariationResponse"][];
       delete?: components["schemas"]["WooCommerceProductVariationResponse"][];
+    };
+    WooCommerceCreateProductTagRequest: {
+      /** Format: int32 */
+      id?: number;
+      name?: string;
+      slug?: string;
+      description?: string;
+    };
+    ApiResponseWoocommerceProductTagResponse: {
+      success?: boolean;
+      data?: components["schemas"]["WoocommerceProductTagResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    WoocommerceProductTagResponse: {
+      /** Format: int32 */
+      id?: number;
+      name?: string;
+      slug?: string;
+      description?: string;
+      /** Format: int32 */
+      count?: number;
+    };
+    BatchWoocommerceProductTagRequest: {
+      create?: components["schemas"]["WooCommerceCreateProductTagRequest"][];
+      update?: components["schemas"]["WooCommerceProductTagRequest"][];
+      delete?: number[];
+    };
+    WooCommerceProductTagRequest: {
+      /** Format: int32 */
+      id?: number;
+      name?: string;
+      slug?: string;
+      description?: string;
+    };
+    ApiResponseBatchWoocommerceProductTagResponse: {
+      success?: boolean;
+      data?: components["schemas"]["BatchWoocommerceProductTagResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    BatchWoocommerceProductTagResponse: {
+      create?: components["schemas"]["WoocommerceProductTagResponse"][];
+      update?: components["schemas"]["WoocommerceProductTagResponse"][];
+      delete?: components["schemas"]["WoocommerceProductTagResponse"][];
+    };
+    WooCommerceCreateProductCategoryRequest: {
+      /** Format: int32 */
+      id?: number;
+      name?: string;
+      slug?: string;
+      /** Format: int32 */
+      parent?: number;
+      description?: string;
+      display?: string;
+      image?: components["schemas"]["LinkToEntityUsingIdRequest"];
+      /** Format: int32 */
+      menuOrder?: number;
+    };
+    ApiResponseWoocommerceProductCategoryResponse: {
+      success?: boolean;
+      data?: components["schemas"]["WoocommerceProductCategoryResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    BatchWoocommerceProductCategoryRequest: {
+      create?: components["schemas"]["WooCommerceCreateProductCategoryRequest"][];
+      update?: components["schemas"]["WooCommerceProductCategoryRequest"][];
+      delete?: number[];
+    };
+    WooCommerceProductCategoryRequest: {
+      /** Format: int32 */
+      id?: number;
+      name?: string;
+      slug?: string;
+      /** Format: int32 */
+      parent?: number;
+      description?: string;
+      display?: string;
+      image?: components["schemas"]["LinkToEntityUsingIdRequest"];
+      /** Format: int32 */
+      menuOrder?: number;
+    };
+    ApiResponseBatchWoocommerceProductCategoryResponse: {
+      success?: boolean;
+      data?: components["schemas"]["BatchWoocommerceProductCategoryResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    BatchWoocommerceProductCategoryResponse: {
+      create?: components["schemas"]["WoocommerceProductCategoryResponse"][];
+      update?: components["schemas"]["WoocommerceProductCategoryResponse"][];
+      delete?: components["schemas"]["WoocommerceProductCategoryResponse"][];
+    };
+    WooCommerceCreateProductBrandRequest: {
+      /** Format: int32 */
+      id?: number;
+      name?: string;
+      slug?: string;
+      /** Format: int32 */
+      parent?: number;
+      description?: string;
+      image?: components["schemas"]["LinkToEntityUsingIdRequest"];
+      /** Format: int32 */
+      menuOrder?: number;
+    };
+    ApiResponseWoocommerceProductBrandResponse: {
+      success?: boolean;
+      data?: components["schemas"]["WoocommerceProductBrandResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    BatchWoocommerceProductBrandRequest: {
+      create?: components["schemas"]["WooCommerceCreateProductBrandRequest"][];
+      update?: components["schemas"]["WooCommerceProductBrandRequest"][];
+      delete?: number[];
+    };
+    WooCommerceProductBrandRequest: {
+      /** Format: int32 */
+      id?: number;
+      name?: string;
+      slug?: string;
+      /** Format: int32 */
+      parent?: number;
+      description?: string;
+      image?: components["schemas"]["LinkToEntityUsingIdRequest"];
+      /** Format: int32 */
+      menuOrder?: number;
+    };
+    ApiResponseBatchWoocommerceProductBrandResponse: {
+      success?: boolean;
+      data?: components["schemas"]["BatchWoocommerceProductBrandResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    BatchWoocommerceProductBrandResponse: {
+      create?: components["schemas"]["WoocommerceProductBrandResponse"][];
+      update?: components["schemas"]["WoocommerceProductBrandResponse"][];
+      delete?: components["schemas"]["WoocommerceProductBrandResponse"][];
     };
     BatchWoocommerceProductRequest: {
       create?: components["schemas"]["WooCommerceProductRequest"][];
@@ -966,9 +1327,10 @@ export interface components {
       /** Format: int32 */
       parentId?: number;
       purchaseNote?: string;
-      categories?: components["schemas"]["LinkToCategoryRequest"][];
-      tags?: components["schemas"]["LinkToTagRequest"][];
-      images?: components["schemas"]["LinkToImageRequest"][];
+      categories?: components["schemas"]["LinkToEntityUsingIdRequest"][];
+      brands?: components["schemas"]["LinkToEntityUsingIdRequest"][];
+      tags?: components["schemas"]["LinkToEntityUsingIdRequest"][];
+      images?: components["schemas"]["LinkToEntityUsingIdRequest"][];
       attributes?: components["schemas"]["LinkToAttributeRequest"][];
       defaultAttributes?: components["schemas"]["LinkToDefaultAttributeRequest"][];
       groupedProducts?: Record<string, never>[];
@@ -1018,7 +1380,7 @@ export interface components {
       description?: string;
       /** Format: int32 */
       menuOrder?: number;
-      nameRequired?: boolean;
+      nameValid?: boolean;
     };
     ApiResponseWoocommerceProductAttributeTermResponse: {
       success?: boolean;
@@ -1126,7 +1488,6 @@ export interface components {
       author?: number;
       commentStatus?: string;
       pingStatus?: string;
-      meta?: Record<string, never>[];
       template?: string;
       altText?: string;
       mediaType?: string;
@@ -1142,6 +1503,137 @@ export interface components {
       updatedAt?: string;
       createdAtGmt?: string;
       updatedAtGmt?: string;
+    };
+    WoocommerceCreateCouponRequest: {
+      /** Format: int32 */
+      id?: number;
+      code?: string;
+      amount?: string;
+      dateCreated?: string;
+      dateCreatedGmt?: string;
+      dateModified?: string;
+      dateModifiedGmt?: string;
+      /** @enum {string} */
+      discountType?: "percent" | "fixed_cart" | "fixed_product";
+      description?: string;
+      dateExpires?: string;
+      dateExpiresGmt?: string;
+      /** Format: int32 */
+      usageCount?: number;
+      individualUse?: boolean;
+      productIds?: number[];
+      excludedProductIds?: number[];
+      /** Format: int32 */
+      usageLimit?: number;
+      /** Format: int32 */
+      usageLimitPerUser?: number;
+      /** Format: int32 */
+      limitUsageToXItems?: number;
+      freeShipping?: boolean;
+      productCategories?: number[];
+      excludedProductCategories?: number[];
+      excludeSaleItems?: boolean;
+      minimumAmount?: string;
+      maximumAmount?: string;
+      emailRestrictions?: string[];
+      usedBy?: string[];
+      metaData?: components["schemas"]["WooCommerceMetaRequest"][];
+    };
+    ApiResponseWoocommerceCouponResponse: {
+      success?: boolean;
+      data?: components["schemas"]["WoocommerceCouponResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    WoocommerceCouponResponse: {
+      /** Format: int32 */
+      id?: number;
+      code?: string;
+      amount?: string;
+      dateCreated?: string;
+      dateCreatedGmt?: string;
+      dateModified?: string;
+      dateModifiedGmt?: string;
+      /** @enum {string} */
+      discountType?: "percent" | "fixed_cart" | "fixed_product";
+      description?: string;
+      dateExpires?: string;
+      dateExpiresGmt?: string;
+      /** Format: int32 */
+      usageCount?: number;
+      individualUse?: boolean;
+      productIds?: number[];
+      excludedProductIds?: number[];
+      /** Format: int32 */
+      usageLimit?: number;
+      /** Format: int32 */
+      usageLimitPerUser?: number;
+      /** Format: int32 */
+      limitUsageToXItems?: number;
+      freeShipping?: boolean;
+      productCategories?: number[];
+      excludedProductCategories?: number[];
+      excludeSaleItems?: boolean;
+      minimumAmount?: string;
+      maximumAmount?: string;
+      emailRestrictions?: string[];
+      usedBy?: string[];
+      metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+      createdAt?: string;
+      updatedAt?: string;
+      createdAtGmt?: string;
+      updatedAtGmt?: string;
+    };
+    BatchWoocommerceCouponRequest: {
+      create?: components["schemas"]["WoocommerceCreateCouponRequest"][];
+      update?: components["schemas"]["WoocommerceCouponRequest"][];
+      delete?: number[];
+    };
+    WoocommerceCouponRequest: {
+      /** Format: int32 */
+      id?: number;
+      code?: string;
+      amount?: string;
+      dateCreated?: string;
+      dateCreatedGmt?: string;
+      dateModified?: string;
+      dateModifiedGmt?: string;
+      /** @enum {string} */
+      discountType?: "percent" | "fixed_cart" | "fixed_product";
+      description?: string;
+      dateExpires?: string;
+      dateExpiresGmt?: string;
+      /** Format: int32 */
+      usageCount?: number;
+      individualUse?: boolean;
+      productIds?: number[];
+      excludedProductIds?: number[];
+      /** Format: int32 */
+      usageLimit?: number;
+      /** Format: int32 */
+      usageLimitPerUser?: number;
+      /** Format: int32 */
+      limitUsageToXItems?: number;
+      freeShipping?: boolean;
+      productCategories?: number[];
+      excludedProductCategories?: number[];
+      excludeSaleItems?: boolean;
+      minimumAmount?: string;
+      maximumAmount?: string;
+      emailRestrictions?: string[];
+      usedBy?: string[];
+      metaData?: components["schemas"]["WooCommerceMetaRequest"][];
+    };
+    ApiResponseBatchWoocommerceCouponResponse: {
+      success?: boolean;
+      data?: components["schemas"]["BatchWoocommerceCouponResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    BatchWoocommerceCouponResponse: {
+      create?: components["schemas"]["WoocommerceCouponResponse"][];
+      update?: components["schemas"]["WoocommerceCouponResponse"][];
+      delete?: components["schemas"]["WoocommerceCouponResponse"][];
     };
     CreateUserRequest: {
       name: string;
@@ -1216,6 +1708,57 @@ export interface components {
       /** Format: int32 */
       totalPages?: number;
     };
+    ApiResponsePageWoocommerceProductTagResponse: {
+      success?: boolean;
+      data?: components["schemas"]["PageWoocommerceProductTagResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    PageWoocommerceProductTagResponse: {
+      items?: components["schemas"]["WoocommerceProductTagResponse"][];
+      /** Format: int32 */
+      currentPage?: number;
+      /** Format: int32 */
+      itemsInPage?: number;
+      /** Format: int32 */
+      totalItems?: number;
+      /** Format: int32 */
+      totalPages?: number;
+    };
+    ApiResponsePageWoocommerceProductCategoryResponse: {
+      success?: boolean;
+      data?: components["schemas"]["PageWoocommerceProductCategoryResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    PageWoocommerceProductCategoryResponse: {
+      items?: components["schemas"]["WoocommerceProductCategoryResponse"][];
+      /** Format: int32 */
+      currentPage?: number;
+      /** Format: int32 */
+      itemsInPage?: number;
+      /** Format: int32 */
+      totalItems?: number;
+      /** Format: int32 */
+      totalPages?: number;
+    };
+    ApiResponsePageWoocommerceProductBrandResponse: {
+      success?: boolean;
+      data?: components["schemas"]["PageWoocommerceProductBrandResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    PageWoocommerceProductBrandResponse: {
+      items?: components["schemas"]["WoocommerceProductBrandResponse"][];
+      /** Format: int32 */
+      currentPage?: number;
+      /** Format: int32 */
+      itemsInPage?: number;
+      /** Format: int32 */
+      totalItems?: number;
+      /** Format: int32 */
+      totalPages?: number;
+    };
     ApiResponsePageWooCommerceProductAttributeResponse: {
       success?: boolean;
       data?: components["schemas"]["PageWooCommerceProductAttributeResponse"];
@@ -1258,6 +1801,23 @@ export interface components {
     };
     PageWordpressMediaResponse: {
       items?: components["schemas"]["WordpressMediaResponse"][];
+      /** Format: int32 */
+      currentPage?: number;
+      /** Format: int32 */
+      itemsInPage?: number;
+      /** Format: int32 */
+      totalItems?: number;
+      /** Format: int32 */
+      totalPages?: number;
+    };
+    ApiResponsePageWoocommerceCouponResponse: {
+      success?: boolean;
+      data?: components["schemas"]["PageWoocommerceCouponResponse"];
+      message?: string;
+      errors?: Record<string, never>;
+    };
+    PageWoocommerceCouponResponse: {
+      items?: components["schemas"]["WoocommerceCouponResponse"][];
       /** Format: int32 */
       currentPage?: number;
       /** Format: int32 */
@@ -1725,7 +2285,232 @@ export interface operations {
       };
     };
   };
+  index_2: {
+    parameters: {
+      query: {
+        request: components["schemas"]["IndexRequest"];
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "*/*": components["schemas"]["ApiResponsePageWoocommerceProductTagResponse"];
+        };
+      };
+    };
+  };
+  create_2: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WooCommerceCreateProductTagRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceProductTagResponse"];
+        };
+      };
+    };
+  };
   batch_1: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BatchWoocommerceProductTagRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseBatchWoocommerceProductTagResponse"];
+        };
+      };
+    };
+  };
+  index_3: {
+    parameters: {
+      query: {
+        request: components["schemas"]["IndexRequest"];
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "*/*": components["schemas"]["ApiResponsePageWoocommerceProductCategoryResponse"];
+        };
+      };
+    };
+  };
+  create_3: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WooCommerceCreateProductCategoryRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceProductCategoryResponse"];
+        };
+      };
+    };
+  };
+  batch_2: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BatchWoocommerceProductCategoryRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseBatchWoocommerceProductCategoryResponse"];
+        };
+      };
+    };
+  };
+  index_4: {
+    parameters: {
+      query: {
+        request: components["schemas"]["IndexRequest"];
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "*/*": components["schemas"]["ApiResponsePageWoocommerceProductBrandResponse"];
+        };
+      };
+    };
+  };
+  create_4: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WooCommerceCreateProductBrandRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceProductBrandResponse"];
+        };
+      };
+    };
+  };
+  batch_3: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BatchWoocommerceProductBrandRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseBatchWoocommerceProductBrandResponse"];
+        };
+      };
+    };
+  };
+  batch_4: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -1751,7 +2536,7 @@ export interface operations {
       };
     };
   };
-  index_2: {
+  index_5: {
     parameters: {
       query: {
         request: components["schemas"]["IndexRequest"];
@@ -1774,7 +2559,7 @@ export interface operations {
       };
     };
   };
-  create_2: {
+  create_5: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -1800,7 +2585,7 @@ export interface operations {
       };
     };
   };
-  index_3: {
+  index_6: {
     parameters: {
       query: {
         request: components["schemas"]["IndexRequest"];
@@ -1825,7 +2610,7 @@ export interface operations {
       };
     };
   };
-  create_3: {
+  create_6: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -1853,7 +2638,7 @@ export interface operations {
       };
     };
   };
-  batch_2: {
+  batch_5: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -1881,7 +2666,7 @@ export interface operations {
       };
     };
   };
-  batch_3: {
+  batch_6: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -1907,7 +2692,7 @@ export interface operations {
       };
     };
   };
-  index_4: {
+  index_7: {
     parameters: {
       query: {
         request: components["schemas"]["IndexRequest"];
@@ -1930,7 +2715,7 @@ export interface operations {
       };
     };
   };
-  create_4: {
+  create_7: {
     parameters: {
       query?: never;
       header?: never;
@@ -1953,6 +2738,81 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ApiResponseWordpressMediaResponse"];
+        };
+      };
+    };
+  };
+  index_8: {
+    parameters: {
+      query: {
+        request: components["schemas"]["IndexRequest"];
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "*/*": components["schemas"]["ApiResponsePageWoocommerceCouponResponse"];
+        };
+      };
+    };
+  };
+  create_8: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WoocommerceCreateCouponRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceCouponResponse"];
+        };
+      };
+    };
+  };
+  batch_7: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BatchWoocommerceCouponRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseBatchWoocommerceCouponResponse"];
         };
       };
     };
@@ -2259,6 +3119,234 @@ export interface operations {
       };
       header?: never;
       path: {
+        tagId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceProductTagResponse"];
+        };
+      };
+    };
+  };
+  delete_2: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        tagId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseBoolean"];
+        };
+      };
+    };
+  };
+  patch_2: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        tagId: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WooCommerceProductTagRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceProductTagResponse"];
+        };
+      };
+    };
+  };
+  show_3: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        categoryId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceProductCategoryResponse"];
+        };
+      };
+    };
+  };
+  delete_3: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        categoryId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseBoolean"];
+        };
+      };
+    };
+  };
+  patch_3: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        categoryId: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WooCommerceProductCategoryRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceProductCategoryResponse"];
+        };
+      };
+    };
+  };
+  show_4: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        brandId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceProductBrandResponse"];
+        };
+      };
+    };
+  };
+  delete_4: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        brandId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseBoolean"];
+        };
+      };
+    };
+  };
+  patch_4: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        brandId: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WooCommerceProductBrandRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceProductBrandResponse"];
+        };
+      };
+    };
+  };
+  show_5: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
         attributeId: number;
       };
       cookie?: never;
@@ -2276,7 +3364,7 @@ export interface operations {
       };
     };
   };
-  delete_2: {
+  delete_5: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -2300,7 +3388,7 @@ export interface operations {
       };
     };
   };
-  patch_2: {
+  patch_5: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -2328,7 +3416,7 @@ export interface operations {
       };
     };
   };
-  show_3: {
+  show_6: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -2353,7 +3441,7 @@ export interface operations {
       };
     };
   };
-  delete_3: {
+  delete_6: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -2378,7 +3466,7 @@ export interface operations {
       };
     };
   };
-  patch_3: {
+  patch_6: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -2407,7 +3495,83 @@ export interface operations {
       };
     };
   };
-  show_4: {
+  show_7: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        couponId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceCouponResponse"];
+        };
+      };
+    };
+  };
+  delete_7: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        couponId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseBoolean"];
+        };
+      };
+    };
+  };
+  patch_7: {
+    parameters: {
+      query: {
+        userEcommerce: components["schemas"]["UserEcommerce"];
+      };
+      header?: never;
+      path: {
+        couponId: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WoocommerceCouponRequest"];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ApiResponseWoocommerceCouponResponse"];
+        };
+      };
+    };
+  };
+  show_8: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];
@@ -2431,7 +3595,7 @@ export interface operations {
       };
     };
   };
-  delete_4: {
+  delete_8: {
     parameters: {
       query: {
         userEcommerce: components["schemas"]["UserEcommerce"];

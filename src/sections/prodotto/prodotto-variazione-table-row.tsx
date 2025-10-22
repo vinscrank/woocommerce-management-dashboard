@@ -207,9 +207,9 @@ export const ProdottoVariazioneTableRow = forwardRef<
         />
       </TableCell>
 
-      {/* <TableCell>
+      <TableCell>
         <Switch checked={row.purchasable ?? false} disabled size="small" />
-      </TableCell> */}
+      </TableCell>
 
       <TableCell>
         <IconButton onClick={handleOpenPopover}>
