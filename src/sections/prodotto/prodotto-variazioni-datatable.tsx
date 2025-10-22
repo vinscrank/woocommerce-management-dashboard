@@ -24,6 +24,7 @@ import { useDeleteVariazione } from 'src/hooks/useDeleteVariazione';
 import { usePostBatchVariazioni } from 'src/hooks/usePostBatchVariazioni';
 import { Variazione } from 'src/types/Variazione';
 import { STOCK_ENABLED } from 'src/utils/const';
+import { usePaginatedTable } from 'src/hooks/usePaginatedTable';
 
 type ProdottoVariazioniDatatableProps = {
   prodotto_id: number;
@@ -37,19 +38,41 @@ export function ProdottoVariazioniDatatable({
   const [openForm, setOpenForm] = useState(false);
   const [selectedVariazione, setSelectedVariazione] = useState<any>(null);
 
-  const { data: variazioni, isLoading: isLoadingVariazioni } = useGetVariazioni(
-    prodotto_id.toString()
+  // Hook per paginazione
+  const { page, rowsPerPage, handlePageChange, handleRowsPerPageChange } = usePaginatedTable({
+    initialPage: 0,
+    initialRowsPerPage: 99,
+  });
+
+  const { data: variazioniData, isLoading: isLoadingVariazioni } = useGetVariazioni(
+    prodotto_id.toString(),
+    page + 1,
+    rowsPerPage
   );
   const { mutate: batchUpdate, isPending: isBatchUpdatePending } =
     usePostBatchVariazioni(prodotto_id);
   const { mutate: destroyVariazione, isPending: isDeleteVariazionePending } =
     useDeleteVariazione(prodotto_id);
 
-  const [localVariazioni, setLocalVariazioni] = useState<Variazione[]>(variazioni || []);
+  const variazioni = variazioniData?.items || [];
+  const [localVariazioni, setLocalVariazioni] = useState<Variazione[]>(variazioni);
 
   useEffect(() => {
-    if (variazioni) {
-      setLocalVariazioni(variazioni);
+    if (variazioni && variazioni.length > 0) {
+      // Ordina le variazioni per menuOrder
+      const sortedVariazioni = [...variazioni].sort((a, b) => {
+        const orderA = a.menuOrder ?? 999999;
+        const orderB = b.menuOrder ?? 999999;
+        return orderA - orderB;
+      });
+
+      // Assicurati che ogni variazione abbia un menuOrder corretto basato sulla posizione ordinata
+      const variazioniWithOrder = sortedVariazioni.map((variazione, index) => ({
+        ...variazione,
+        menuOrder: variazione.menuOrder ?? index,
+      }));
+
+      setLocalVariazioni(variazioniWithOrder);
     }
   }, [variazioni]);
 
@@ -86,15 +109,16 @@ export function ProdottoVariazioniDatatable({
     const newIndex = localVariazioni.findIndex((item) => item.id === over.id);
 
     if (oldIndex !== -1 && newIndex !== -1) {
+      // Riordina le variazioni e assegna il menuOrder partendo da 0
       const updatedVariazioni = arrayMove(localVariazioni, oldIndex, newIndex).map(
         (item, index) => ({
           ...item,
-          menuOrder: index + 1,
+          menuOrder: index,
         })
       );
 
       setLocalVariazioni(updatedVariazioni);
-      batchUpdate({ variazioni: updatedVariazioni });
+      //batchUpdate({ variazioni: updatedVariazioni });
     }
   };
 
@@ -136,7 +160,7 @@ export function ProdottoVariazioniDatatable({
       >
         <Box>
           <Typography variant="h6">
-            Variazioni {prodotto?.name} ({variazioni?.length})
+            Variazioni {prodotto?.name} ({variazioniData?.totalItems || 0})
           </Typography>
         </Box>
         <Box>
@@ -167,11 +191,18 @@ export function ProdottoVariazioniDatatable({
           >
             <GenericTable
               noOrder
+              noSearch
               data={localVariazioni.filter((v): v is Variazione & { id: number } => v.id !== null)}
               columns={columns}
               isLoading={isLoadingVariazioni || isBatchUpdatePending || isDeleteVariazionePending}
               showCheckbox={false}
-              showPagination={false}
+              showPagination={true}
+              serverSidePagination={true}
+              totalItems={variazioniData?.totalItems || 0}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
               renderRow={(variazione) => (
                 <ProdottoVariazioneTableRow
                   key={variazione.id}
