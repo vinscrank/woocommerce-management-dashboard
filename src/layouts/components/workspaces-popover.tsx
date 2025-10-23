@@ -15,6 +15,7 @@ import { Iconify } from 'src/components/iconify';
 import { useWorkspace } from 'src/context/WorkspaceContext';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { ConfirmationModal } from 'src/components/confirmation-modal';
 
 // ----------------------------------------------------------------------
 
@@ -37,6 +38,8 @@ export function WorkspacesPopover({
 }: WorkspacesPopoverProps) {
   const { selectedWorkspaceId, setSelectedWorkspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingWorkspaceId, setPendingWorkspaceId] = useState<string | null>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -60,22 +63,43 @@ export function WorkspacesPopover({
 
   const handleChangeWorkspace = useCallback(
     (workspaceId: string) => {
-      // Cambia workspace
-      setSelectedWorkspaceId(workspaceId);
+      // Se è lo stesso workspace, non fare nulla
+      if (workspaceId === selectedWorkspaceId) {
+        handleClosePopover();
+        return;
+      }
 
-      // Invalida tutte le query per fare refresh completo dei dati
-      queryClient.invalidateQueries();
-
-      // Naviga alla home
-      navigate('/');
-
-      // Chiudi il popover
+      // Mostra la modale di conferma
+      setPendingWorkspaceId(workspaceId);
+      setShowConfirmation(true);
       handleClosePopover();
-
-      console.log('✅ Workspace cambiato, dati aggiornati e navigato alla home');
     },
-    [handleClosePopover, setSelectedWorkspaceId, navigate, queryClient]
+    [selectedWorkspaceId, handleClosePopover]
   );
+
+  const handleConfirmWorkspaceChange = useCallback(() => {
+    if (!pendingWorkspaceId) return;
+
+    // Cambia workspace
+    setSelectedWorkspaceId(pendingWorkspaceId);
+
+    // Invalida tutte le query per fare refresh completo dei dati
+    queryClient.invalidateQueries();
+
+    // Naviga alla home
+    navigate('/');
+
+    // Chiudi la modale
+    setShowConfirmation(false);
+    setPendingWorkspaceId(null);
+
+    console.log('✅ Workspace cambiato, dati aggiornati e navigato alla home');
+  }, [pendingWorkspaceId, setSelectedWorkspaceId, navigate, queryClient]);
+
+  const handleCancelWorkspaceChange = useCallback(() => {
+    setShowConfirmation(false);
+    setPendingWorkspaceId(null);
+  }, []);
 
   const renderAvatar = (alt: string, src: React.ReactNode, href: string) => (
     <Box
@@ -100,6 +124,9 @@ export function WorkspacesPopover({
       {plan}
     </ButtonBase>
   );
+
+  // Trova il nome del workspace di destinazione per la modale
+  const targetWorkspace = data.find((ws) => ws.id === pendingWorkspaceId);
 
   return (
     <>
@@ -174,6 +201,19 @@ export function WorkspacesPopover({
           ))}
         </MenuList>
       </Popover>
+
+      {/* Modale di conferma per il cambio workspace */}
+      <ConfirmationModal
+        open={showConfirmation}
+        onClose={handleCancelWorkspaceChange}
+        onConfirm={handleConfirmWorkspaceChange}
+        title="Cambio Workspace"
+        message={`Sei sicuro di voler passare al workspace "${targetWorkspace?.name}"? Tutti i dati non salvati andranno persi.`}
+        confirmText="Cambia Workspace"
+        cancelText="Annulla"
+        confirmColor="primary"
+        icon="eva:swap-fill"
+      />
     </>
   );
 }

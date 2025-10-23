@@ -18,6 +18,7 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  IconButton,
 } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { useState, useEffect } from 'react';
@@ -255,8 +256,24 @@ export function ProdottoVariazioneForm({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        {variazione?.id ? `Variazione ${variazione.sku}` : 'Nuova variazione'}
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6">
+          {variazione?.id ? `Variazione ${variazione.sku}` : 'Nuova variazione'}
+        </Typography>
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: 'grey.500',
+            '&:hover': {
+              color: 'grey.700',
+            },
+          }}
+        >
+          <Iconify icon="eva:close-fill" />
+        </IconButton>
       </DialogTitle>
 
       <DialogContent>

@@ -32,7 +32,7 @@ export function FilesView() {
     resetPage,
   } = usePaginatedTable({
     initialPage: 0,
-    initialRowsPerPage: 10,
+    initialRowsPerPage: 25,
     debounceDelay: 1000,
   });
 

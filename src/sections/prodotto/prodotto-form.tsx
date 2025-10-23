@@ -128,7 +128,7 @@ export function ProdottoForm({
     },
   });
 
-   const formImages = watch('images') || prodotto?.images || [];
+  const formImages = watch('images') || prodotto?.images || [];
 
   useEffect(() => {
     if (prodotto) {
@@ -408,10 +408,10 @@ export function ProdottoForm({
       const newIndex = currentImages.findIndex((img) => img.src === over.id);
 
       if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== -1 && newIndex !== -1) {
-      // Crea un nuovo array di immagini con l'ordine aggiornato usando arrayMove
-      const reorderedImages = arrayMove(currentImages, oldIndex, newIndex);
-      setValue('images', reorderedImages as any);
-      // L'ordine è ora salvato nel form state e verrà salvato sul server premendo "Salva Prodotto"
+        // Crea un nuovo array di immagini con l'ordine aggiornato usando arrayMove
+        const reorderedImages = arrayMove(currentImages, oldIndex, newIndex);
+        setValue('images', reorderedImages as any);
+        // L'ordine è ora salvato nel form state e verrà salvato sul server premendo "Salva Prodotto"
       }
     }
   };
@@ -730,7 +730,7 @@ export function ProdottoForm({
               <ProdottoTagsSelect
                 value={watch('tags')}
                 onChange={(tags) => setValue('tags', tags as any)}
-                perPage={2}
+                perPage={25}
               />
             </Grid>
 
@@ -738,7 +738,7 @@ export function ProdottoForm({
               <ProdottoBrandsSelect
                 value={watch('brands')}
                 onChange={(brands) => setValue('brands', brands as any)}
-                perPage={2}
+                perPage={25}
               />
             </Grid>
 
@@ -746,7 +746,7 @@ export function ProdottoForm({
               <ProdottoCategoriesSelect
                 value={watch('categories')}
                 onChange={(categories) => setValue('categories', categories as any)}
-                perPage={5}
+                perPage={25}
               />
             </Grid>
 
@@ -874,7 +874,6 @@ export function ProdottoForm({
                 </AccordionSummary>
                 <AccordionDetails>
                   <Grid container spacing={1}>
-                   
                     {formImages && formImages?.length > 0 && (
                       <Grid item xs={12}>
                         <DndContext
@@ -885,9 +884,7 @@ export function ProdottoForm({
                           <Box display="flex" flexWrap="wrap" gap={2} mb={3}>
                             <SortableContext
                               items={
-                                formImages
-                                  ?.map((img) => img.src || '')
-                                  .filter((src) => src) || []
+                                formImages?.map((img) => img.src || '').filter((src) => src) || []
                               }
                             >
                               {formImages?.map((immagine, index) => (

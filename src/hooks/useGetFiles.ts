@@ -20,7 +20,7 @@ const fetchFiles = async (ecommerceId: number | null, page: number = 1, perPage:
     return data.data;
 };
 
-export const useGetFiles = (page: number = 1, perPage: number = 10, search?: string) => {
+export const useGetFiles = (page: number = 1, perPage: number = 25, search?: string) => {
     const { ecommerceId } = useWorkspace();
     return useQuery<PaginatedResponse<Media>, Error>({
         queryKey: ['files', ecommerceId, page, perPage, search],
