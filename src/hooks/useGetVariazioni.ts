@@ -44,16 +44,3 @@ export function useGetVariazioni(prodotto_id: string, page: number = 1, perPage:
         enabled: !!ecommerceId && !!prodotto_id,
     });
 }
-
-// Hook per ottenere TUTTE le variazioni (per dropdown/select) - retrocompatibilità
-export function useGetAllVariazioni(prodotto_id: string) {
-    const { ecommerceId } = useWorkspace();
-    return useQuery<Variazione[], Error>({
-        queryKey: ['variazioni', prodotto_id.toString(), 'all'],
-        queryFn: async () => {
-            const result = await fetchVariazioni(prodotto_id, ecommerceId, 1, 999);
-            return result.items;
-        },
-        enabled: !!ecommerceId && !!prodotto_id,
-    });
-} 

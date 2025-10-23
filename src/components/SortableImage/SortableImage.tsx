@@ -35,9 +35,37 @@ export const SortableImage = ({ immagine, index, onDelete }: SortableImageProps)
   return (
     <Box ref={setNodeRef} style={style}>
       <Box position="relative" display="inline-block">
-        {/* Area per il drag and drop */}
-        <Box {...attributes} {...listeners} position="absolute" top={0} right={0} p={1}>
-          <Iconify icon="eva:move-fill" sx={{ cursor: 'grab' }} />
+        {/* Area per il drag and drop - MIGLIORATA */}
+        <Box
+          {...attributes}
+          {...listeners}
+          position="absolute"
+          top={4}
+          right={4}
+          sx={{
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            borderRadius: '50%',
+            width: 32,
+            height: 32,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'grab',
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            },
+            '&:active': {
+              cursor: 'grabbing',
+            },
+          }}
+        >
+          <Iconify
+            icon="eva:move-fill"
+            sx={{
+              color: 'white',
+              fontSize: 20,
+            }}
+          />
         </Box>
         {/* Immagine cliccabile */}
         <img
@@ -48,15 +76,27 @@ export const SortableImage = ({ immagine, index, onDelete }: SortableImageProps)
             width: '100px',
             height: '100px',
             cursor: 'pointer',
+            borderRadius: '4px',
           }}
           className="img-generica"
           onClick={handleImageClick}
         />
-        {/* Pulsante elimina */}
+        {/* Pulsante elimina - MIGLIORATO */}
         <IconButton
-          color="error"
           size="small"
-          style={{ position: 'absolute', bottom: '10px', left: '10px' }}
+          sx={{
+            position: 'absolute',
+            bottom: 4,
+            left: 4,
+            backgroundColor: 'rgba(211, 47, 47, 0.9)',
+            color: 'white',
+            width: 32,
+            height: 32,
+            '&:hover': {
+              backgroundColor: 'rgba(211, 47, 47, 1)',
+              transform: 'scale(1.1)',
+            },
+          }}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -65,7 +105,7 @@ export const SortableImage = ({ immagine, index, onDelete }: SortableImageProps)
             }
           }}
         >
-          <Iconify icon="eva:trash-2-outline" />
+          <Iconify icon="eva:trash-2-outline" sx={{ fontSize: 18 }} />
         </IconButton>
       </Box>
 

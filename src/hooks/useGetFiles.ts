@@ -6,7 +6,6 @@ import { useWorkspace } from 'src/context/WorkspaceContext';
 import { PaginatedResponse } from 'src/types/PaginetedResponse';
 
 const fetchFiles = async (ecommerceId: number | null, page: number = 1, perPage: number = 10, search?: string): Promise<PaginatedResponse<Media>> => {
-    // Trim della ricerca e verifica che non sia vuota
     const trimmedSearch = search?.trim();
     const searchParam = trimmedSearch && trimmedSearch.length > 0 ? trimmedSearch : undefined;
 

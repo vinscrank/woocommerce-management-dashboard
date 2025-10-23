@@ -64,11 +64,7 @@ import { UploadModal } from 'src/components/upload-modal/UploadModal';
 import { useDevUrl } from 'src/hooks/useDevUrl';
 import { useProdottoStatus } from 'src/hooks/useProdottoStatus';
 import { useGetStockStati } from 'src/hooks/useGetStockStati';
-import {
-  ProdottoStatusLabel,
-  StockStatusLabel,
-  CatalogVisibilityLabel,
-} from 'src/types/ProdottoEnums';
+import { ProdottoStatusLabel, CatalogVisibilityLabel } from 'src/types/ProdottoEnums';
 
 type ProdottoFormProps = {
   prodotto: Prodotto | null;
@@ -132,6 +128,8 @@ export function ProdottoForm({
     },
   });
 
+   const formImages = watch('images') || prodotto?.images || [];
+
   useEffect(() => {
     if (prodotto) {
       reset({
@@ -186,7 +184,6 @@ export function ProdottoForm({
     prodotto?.id as number
   );
 
-  // const { mutate: exportProdotto, isPending: isExportLoading } = useExportProdotti();
   // Gestione upload immagini
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   const [selectedExistingFiles, setSelectedExistingFiles] = useState<Media[]>([]);
@@ -197,18 +194,18 @@ export function ProdottoForm({
 
   // Stato per gestire i metaData
   // WooCommerce usa 'name' ma noi mappiamo a 'key' per consistenza
-  const [metaData, setMetaData] = useState<
-    Array<{ id?: number; key?: string; name?: string; value?: string }>
-  >(
-    prodotto?.metaData?.map((meta) => {
-      const metaAny = meta as any;
-      return {
-        ...meta,
-        key: metaAny.key || metaAny.name,
-        name: metaAny.name || metaAny.key,
-      };
-    }) || []
-  );
+  // const [metaData, setMetaData] = useState<
+  //   Array<{ id?: number; key?: string; name?: string; value?: string }>
+  // >(
+  //   prodotto?.metaData?.map((meta) => {
+  //     const metaAny = meta as any;
+  //     return {
+  //       ...meta,
+  //       key: metaAny.key || metaAny.name,
+  //       name: metaAny.name || metaAny.key,
+  //     };
+  //   }) || []
+  // );
 
   // Stato per gestire l'apertura/chiusura della modal upload
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -223,20 +220,20 @@ export function ProdottoForm({
   }, [fullDescription, setValue]);
 
   // Aggiorna metaData quando cambia il prodotto
-  useEffect(() => {
-    if (prodotto?.metaData) {
-      setMetaData(
-        prodotto.metaData.map((meta) => {
-          const metaAny = meta as any;
-          return {
-            ...meta,
-            key: metaAny.key || metaAny.name,
-            name: metaAny.name || metaAny.key,
-          };
-        })
-      );
-    }
-  }, [prodotto?.metaData]);
+  // useEffect(() => {
+  //   if (prodotto?.metaData) {
+  //     setMetaData(
+  //       prodotto.metaData.map((meta) => {
+  //         const metaAny = meta as any;
+  //         return {
+  //           ...meta,
+  //           key: metaAny.key || metaAny.name,
+  //           name: metaAny.name || metaAny.key,
+  //         };
+  //       })
+  //     );
+  //   }
+  // }, [prodotto?.metaData]);
 
   // Configurazione dei moduli per l'editor Quill
   // const quillModules = {
@@ -366,7 +363,7 @@ export function ProdottoForm({
       dateOnSaleFromGmt: undefined,
       dateOnSaleToGmt: undefined,
       // Aggiungi i metaData modificati
-      metaData: metaData,
+      //metaData: metaData,
     };
 
     // Trasforma categories nel formato WooCommerce
@@ -411,21 +408,10 @@ export function ProdottoForm({
       const newIndex = currentImages.findIndex((img) => img.src === over.id);
 
       if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== -1 && newIndex !== -1) {
-        // Crea un nuovo array di immagini con l'ordine aggiornato usando arrayMove
-        const reorderedImages = arrayMove(currentImages, oldIndex, newIndex);
-        setValue('images', reorderedImages as any);
-        if (prodotto?.id) {
-          const formData = watch(); // Ottieni tutti i dati del form
-          const cleanedFormData = cleanEmptyFields(formData);
-          updateProdotto(
-            { id: prodotto.id.toString(), data: cleanedFormData },
-            {
-              onSuccess: () => {
-                if (onSync) onSync();
-              },
-            }
-          );
-        }
+      // Crea un nuovo array di immagini con l'ordine aggiornato usando arrayMove
+      const reorderedImages = arrayMove(currentImages, oldIndex, newIndex);
+      setValue('images', reorderedImages as any);
+      // L'ordine è ora salvato nel form state e verrà salvato sul server premendo "Salva Prodotto"
       }
     }
   };
@@ -888,7 +874,8 @@ export function ProdottoForm({
                 </AccordionSummary>
                 <AccordionDetails>
                   <Grid container spacing={1}>
-                    {prodotto?.images && prodotto?.images?.length > 0 && (
+                   
+                    {formImages && formImages?.length > 0 && (
                       <Grid item xs={12}>
                         <DndContext
                           sensors={sensors}
@@ -898,12 +885,12 @@ export function ProdottoForm({
                           <Box display="flex" flexWrap="wrap" gap={2} mb={3}>
                             <SortableContext
                               items={
-                                prodotto?.images
+                                formImages
                                   ?.map((img) => img.src || '')
                                   .filter((src) => src) || []
                               }
                             >
-                              {prodotto?.images?.map((immagine, index) => (
+                              {formImages?.map((immagine, index) => (
                                 <SortableImage
                                   key={immagine.src}
                                   immagine={immagine}
@@ -916,7 +903,6 @@ export function ProdottoForm({
                         </DndContext>
                       </Grid>
                     )}
-
                     <Grid item xs={12}>
                       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                         <Button
@@ -998,7 +984,7 @@ export function ProdottoForm({
                         />
                       </Grid>
 
-                      {  manageStock && (
+                      {manageStock && (
                         <Grid item xs={12} md={2}>
                           <TextField
                             fullWidth

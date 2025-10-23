@@ -52,8 +52,6 @@ export function ProdottiView() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProdotto, setSelectedProdotto] = useState<Prodotto | null>(null);
-
-  const { showMessage } = useSnackbar();
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const handleOpenModal = (prodotto?: Prodotto) => {
@@ -67,7 +65,6 @@ export function ProdottiView() {
   };
 
   const handleSubmit = async (data: any) => {
-    // Qui andrebbe la logica per salvare il prodotto
     handleCloseModal();
   };
 
@@ -93,15 +90,6 @@ export function ProdottiView() {
           Lista Prodotti ({prodotti?.length || 0})
         </Typography>
         <Box display="flex" gap={1}>
-          {/* <Button
-            variant="contained"
-            color="success"
-            startIcon={<Iconify icon="vscode-icons:file-type-excel" />}
-            onClick={handleExportProdotti}
-            disabled={isExporting || selectedRows.length === 0}
-          >
-            Export Prodotti
-          </Button> */}
           <Button
             variant="contained"
             color="inherit"
@@ -116,7 +104,6 @@ export function ProdottiView() {
       <GenericModal
         open={isModalOpen}
         onClose={handleCloseModal}
-        //title={selectedProdotto ? `Prodotto: ${selectedProdotto.name}` : 'Nuovo Prodotto'}
         onConfirm={handleSubmit}
         maxWidth="xl"
       >
@@ -127,21 +114,7 @@ export function ProdottiView() {
         />
       </GenericModal>
 
-      {/* <GenericModal
-        open={isStatisticheModalOpen}
-        onClose={closeStatisticheModal}
-        title="Riepilogo Esportazione"
-        maxWidth="sm"
-      >
-        <Box sx={{ p: 2 }}>
-          <Typography variant="body1">
-            <b>Totale Esportati</b>: {statistiche?.totale_esportati || 0}
-          </Typography>
-          <Typography variant="body1">
-            <b>Prodotti NON Esportati</b>: {statistiche?.totale_non_esportati || 0}
-          </Typography>
-        </Box>
-      </GenericModal> */}
+
 
       <GenericTable
         onSelectAll={handleSelectAllRows}

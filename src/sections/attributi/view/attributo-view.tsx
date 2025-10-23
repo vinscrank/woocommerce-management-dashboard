@@ -93,32 +93,6 @@ export function AttributiView() {
           Lista Attributi ({totalItems})
         </Typography>
         <Box display="flex" gap={1}>
-          {/* <Button
-                        variant="contained"
-                        color="secondary"
-                        startIcon={<Iconify icon="material-symbols:sync" />}
-                     
-                    >
-                        Sincronizza WooCommerce
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<Iconify icon="vscode-icons:file-type-excel" />}
-                        onClick={handleExportAttributi}
-                        disabled={isExportingAttributi}
-                    >
-                        Export Attributi
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<Iconify icon="vscode-icons:file-type-excel" />}
-                        onClick={handleExportOptions}
-                        disabled={isExportingOpzioni}
-                    >
-                        Export Opzioni
-                    </Button> */}
           <Button
             variant="contained"
             color="inherit"

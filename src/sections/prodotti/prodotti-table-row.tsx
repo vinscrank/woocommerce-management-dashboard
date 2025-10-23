@@ -132,9 +132,6 @@ export function ProdottoTableRow({
             {stockInfo.icon && <Iconify icon={stockInfo.icon} />}
           </Label>
         </TableCell>
-        {/* <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-          {row.onSale} {row.onSale || row.onSale === null ? <Label color="info">SI</Label> : '-'}
-        </TableCell> */}
         <TableCell
           sx={{
             position: 'sticky',

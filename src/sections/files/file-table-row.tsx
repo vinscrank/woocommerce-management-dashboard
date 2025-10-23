@@ -141,10 +141,7 @@ export function FileTableRow({ row }: FileTableRowProps) {
             },
           }}
         >
-          {/* <MenuItem onClick={handleOpenRenameModal}>
-            <Iconify icon="solar:pen-bold" />
-            Rinomina
-          </MenuItem> */}
+    
 
           <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
             {isDeleting ? (

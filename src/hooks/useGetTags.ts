@@ -49,15 +49,4 @@ export const useGetTags = (page: number = 1, perPage: number = 25, search: strin
     });
 };
 
-// Hook per ottenere TUTTI i tags (per dropdown/select) - retrocompatibilità
-export const useGetAllTags = () => {
-    const { ecommerceId } = useWorkspace();
-    return useQuery<Tag[], Error>({
-        queryKey: ['tags', 'all'],
-        queryFn: async () => {
-            const result = await fetchTags(ecommerceId, 1, 3, '');
-            return result.items;
-        },
-        enabled: !!ecommerceId,
-    });
-}; 
+

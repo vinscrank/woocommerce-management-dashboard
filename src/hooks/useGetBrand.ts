@@ -48,16 +48,3 @@ export const useGetBrands = (page: number = 1, perPage: number = 25, search: str
         enabled: !!ecommerceId,
     });
 };
-
-// Hook per ottenere TUTTI i brands (per dropdown/select) - retrocompatibilità
-export const useGetAllBrands = () => {
-    const { ecommerceId } = useWorkspace();
-    return useQuery<Brand[], Error>({
-        queryKey: ['brands', 'all'],
-        queryFn: async () => {
-            const result = await fetchBrands(ecommerceId, 1, 100, '');
-            return result.items;
-        },
-        enabled: !!ecommerceId,
-    });
-}; 
