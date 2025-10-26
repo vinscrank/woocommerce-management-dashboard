@@ -6,46 +6,46 @@ import { API_BASE_PREFIX } from 'src/utils/const';
 import { useWorkspace } from 'src/context/WorkspaceContext';
 
 const fetchOrdini = async (
-    ecommerceId: number | null,
-    page: number = 1,
-    perPage: number = 25,
-    search: string = ''
+  ecommerceId: number | null,
+  page: number = 1,
+  perPage: number = 25,
+  search: string = ''
 ): Promise<PaginatedResponse<Ordine>> => {
-    const params: any = {
-        page,
-        perPage,
-        orderBy: 'id',
-        order: 'desc',
-    };
+  const params: any = {
+    page,
+    perPage,
+    orderBy: 'id',
+    order: 'desc',
+  };
 
-    if (search) {
-        params.search = search;
-    }
+  if (search) {
+    params.search = search;
+  }
 
-    const { data } = await axiosInstance.get(`${API_BASE_PREFIX}/${ecommerceId}/orders`, {
-        params,
-    });
+  const { data } = await axiosInstance.get(`${API_BASE_PREFIX}/${ecommerceId}/orders`, {
+    params,
+  });
 
-    const items = data.data.items || [];
-    const totalItems = data.data.totalItems || items.length || 0;
-    const totalPages = Math.ceil(totalItems / perPage);
+  const items = data.data.items || [];
+  const totalItems = data.data.totalItems || items.length || 0;
+  const totalPages = Math.ceil(totalItems / perPage);
 
-    return {
-        items,
-        currentPage: page,
-        itemsInPage: items.length,
-        totalItems,
-        totalPages,
-    };
+  return {
+    items,
+    currentPage: page,
+    itemsInPage: items.length,
+    totalItems,
+    totalPages,
+  };
 };
 
 // Hook paginato per le liste
 export const useGetOrdini = (page: number = 1, perPage: number = 25, search: string = '') => {
-    const { ecommerceId } = useWorkspace();
-    return useQuery<PaginatedResponse<Ordine>, Error>({
-        queryKey: ['ordini', page, perPage, search],
-        queryFn: () => fetchOrdini(ecommerceId, page, perPage, search),
-        enabled: !!ecommerceId,
-    });
+  const { ecommerceId } = useWorkspace();
+  return useQuery<PaginatedResponse<Ordine>, Error>({
+    queryKey: ['ordini', page, perPage, search],
+    queryFn: () => fetchOrdini(ecommerceId, page, perPage, search),
+    enabled: !!ecommerceId,
+  });
 };
 

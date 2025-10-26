@@ -64,6 +64,11 @@ export const navData = [
     icon: iconify('mdi:account-multiple-outline'),
   },
   {
+    title: 'Ordini',
+    path: '/ordini',
+    icon: iconify('mdi:cart-outline'),
+  },
+  {
     title: 'Media',
     path: '/files',
     icon: iconify('mdi:file-outline'),
