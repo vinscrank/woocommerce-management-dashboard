@@ -69,6 +69,11 @@ export const navData = [
     icon: iconify('mdi:cart-outline'),
   },
   {
+    title: 'Coupon',
+    path: '/coupon',
+    icon: iconify('mdi:ticket-percent-outline'),
+  },
+  {
     title: 'Media',
     path: '/files',
     icon: iconify('mdi:file-outline'),

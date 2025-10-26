@@ -24,6 +24,7 @@ export const TagsPage = lazy(() => import('src/pages/tags'));
 export const ImportProdottiPage = lazy(() => import('src/pages/import-prodotti'));
 export const ClientiPage = lazy(() => import('src/pages/clienti'));
 export const OrdiniPage = lazy(() => import('src/pages/ordini'));
+export const CouponPage = lazy(() => import('src/pages/coupon'));
 export const SeoConfigPage = lazy(() => import('src/pages/seo-config'));
 export const ProdottiPage = lazy(() => import('src/pages/prodotti'));
 export const ProdottoPage = lazy(() => import('src/pages/prodotto'));
@@ -62,6 +63,7 @@ export function Router() {
         { path: 'tags', element: <TagsPage /> },
         { path: 'clienti', element: <ClientiPage /> },
         { path: 'ordini', element: <OrdiniPage /> },
+        { path: 'coupon', element: <CouponPage /> },
         { path: 'files', element: <FilesPage /> },
         { path: 'import-prodotti', element: <ImportProdottiPage /> },
         { path: 'attributi', element: <AttributiPage /> },

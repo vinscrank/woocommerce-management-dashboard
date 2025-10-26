@@ -19,6 +19,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { usePutOrdine } from 'src/hooks/usePutOrdine';
 import { Iconify } from 'src/components/iconify';
 import { useAccordionStyles } from 'src/hooks/useAccordionStyles';
+import dayjs from 'dayjs';
 
 interface OrdineFormProps {
   ordine: Ordine;
@@ -310,6 +311,19 @@ export function OrdineForm({ ordine, onSubmit }: OrdineFormProps) {
             <Grid item xs={12}>
               <TextField fullWidth label="ID" value={ordine.id} disabled />
             </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth label="Numero Ordine" value={ordine.number || '-'} disabled />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Data Creazione"
+                value={
+                  ordine.dateCreated ? dayjs(ordine.dateCreated).format('DD/MM/YYYY HH:mm') : '-'
+                }
+                disabled
+              />
+            </Grid>
           </>
         )}
 
@@ -378,6 +392,153 @@ export function OrdineForm({ ordine, onSubmit }: OrdineFormProps) {
           <TextField fullWidth label="ID Transazione" {...register('transactionId')} />
         </Grid>
 
+        {/* Totale Ordine - Solo visualizzazione */}
+        {ordine && (
+          <Grid item xs={12}>
+            <Accordion sx={getAccordionStyles('Totali Ordine')}>
+              <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                <Typography>Totali Ordine</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Subtotale"
+                      value={`${ordine.total || '0.00'} ${ordine.currency || 'EUR'}`}
+                      disabled
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Tasse"
+                      value={`${ordine.totalTax || '0.00'} ${ordine.currency || 'EUR'}`}
+                      disabled
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Sconto"
+                      value={`${ordine.discountTotal || '0.00'} ${ordine.currency || 'EUR'}`}
+                      disabled
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Spedizione"
+                      value={`${ordine.shippingTotal || '0.00'} ${ordine.currency || 'EUR'}`}
+                      disabled
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </Grid>
+        )}
+
+        {/* Line Items - Prodotti Ordinati */}
+        {ordine?.lineItems && ordine.lineItems.length > 0 && (
+          <Grid item xs={12}>
+            <Accordion sx={getAccordionStyles('Prodotti Ordinati')}>
+              <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                <Typography>Prodotti Ordinati ({ordine.lineItems.length})</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  {ordine.lineItems.map((item, index) => (
+                    <Grid
+                      item
+                      xs={12}
+                      key={index}
+                      sx={{
+                        borderBottom:
+                          index < ordine.lineItems!.length - 1 ? '1px solid #e0e0e0' : 'none',
+                        pb: 2,
+                        mb: 2,
+                      }}
+                    >
+                      <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            label="Prodotto"
+                            value={`${item.name || '-'} (ID: ${item.productId || '-'})`}
+                            disabled
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <TextField
+                            fullWidth
+                            label="Quantità"
+                            value={item.quantity || '-'}
+                            disabled
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <TextField
+                            fullWidth
+                            label="Subtotale"
+                            value={`${item.subtotal || '0.00'} ${ordine.currency || 'EUR'}`}
+                            disabled
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <TextField
+                            fullWidth
+                            label="Totale"
+                            value={`${item.total || '0.00'} ${ordine.currency || 'EUR'}`}
+                            disabled
+                          />
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </Grid>
+        )}
+
+        {/* Tax Lines */}
+        {ordine?.taxLines && ordine.taxLines.length > 0 && (
+          <Grid item xs={12}>
+            <Accordion sx={getAccordionStyles('Tasse')}>
+              <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                <Typography>Tasse ({ordine.taxLines.length})</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  {ordine.taxLines.map((tax, index) => (
+                    <Grid item xs={12} md={6} key={index}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            label="Tipo Tassa"
+                            value={tax.label || '-'}
+                            disabled
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            label="Totale Tassa"
+                            value={`${tax.taxTotal || '0.00'} ${ordine.currency || 'EUR'}`}
+                            disabled
+                          />
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </Grid>
+        )}
+
         {/* Billing Address */}
         <Grid item xs={12}>
           <Accordion sx={getAccordionStyles('Indirizzo di Fatturazione')}>
@@ -427,6 +588,51 @@ export function OrdineForm({ ordine, onSubmit }: OrdineFormProps) {
             </AccordionDetails>
           </Accordion>
         </Grid>
+
+        {/* Coupon Lines */}
+        {ordine?.couponLines && ordine.couponLines.length > 0 && (
+          <Grid item xs={12}>
+            <Accordion sx={getAccordionStyles('Coupon Applicati')}>
+              <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                <Typography>Coupon Applicati ({ordine.couponLines.length})</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  {ordine.couponLines.map((couponLine, index) => (
+                    <Grid item xs={12} key={index}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={3}>
+                          <TextField
+                            fullWidth
+                            label="Codice Coupon"
+                            value={couponLine.code || '-'}
+                            disabled
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                          <TextField
+                            fullWidth
+                            label="Sconto"
+                            value={couponLine.discount || '0.00'}
+                            disabled
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                          <TextField
+                            fullWidth
+                            label="Sconto Tax"
+                            value={couponLine.discountTax || '0.00'}
+                            disabled
+                          />
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </Grid>
+        )}
 
         {/* Shipping Address */}
         <Grid item xs={12}>
