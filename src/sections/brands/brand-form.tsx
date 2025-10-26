@@ -39,7 +39,7 @@ export function BrandForm({ brand, onSubmit }: brandFormProps) {
         {
           onSuccess: () => onSubmit(data),
           onError: (error) => {
-            console.error('Errore durante il salvabrandgio del brand:', error);
+            console.error('Errore durante il salvaggio del brand:', error);
           },
         }
       );
@@ -47,7 +47,7 @@ export function BrandForm({ brand, onSubmit }: brandFormProps) {
       createbrand(data, {
         onSuccess: () => onSubmit(data),
         onError: (error) => {
-          console.error('Errore durante il salvabrandgio del brand:', error);
+          console.error('Errore durante il salvaggio del brand:', error);
         },
       });
     }
@@ -83,7 +83,7 @@ export function BrandForm({ brand, onSubmit }: brandFormProps) {
             color="primary"
             disabled={isPosting || isUpdating}
           >
-            {isPosting || isUpdating ? 'Salvabrandgio...' : 'Salva brand'}
+            {isPosting || isUpdating ? 'Salvataggio...' : 'Salva brand'}
           </Button>
         </Grid>
       </Grid>

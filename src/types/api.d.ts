@@ -308,7 +308,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/woocommerce/{ecommerceId}/media": {
+    "/api/woocommerce/{ecommerceId}/orders": {
         parameters: {
             query?: never;
             header?: never;
@@ -324,7 +324,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/woocommerce/{ecommerceId}/coupons": {
+    "/api/woocommerce/{ecommerceId}/orders/{orderId}/refunds": {
         parameters: {
             query?: never;
             header?: never;
@@ -340,7 +340,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/woocommerce/{ecommerceId}/coupons/batch": {
+    "/api/woocommerce/{ecommerceId}/orders/{orderId}/actions/send-order-details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["sendOrderDetailsToCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/orders/{orderId}/actions/send-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["sendOrderNotificationEmailToCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/orders/batch": {
         parameters: {
             query?: never;
             header?: never;
@@ -350,6 +382,86 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["batch_7"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["index_9"];
+        put?: never;
+        post: operations["create_9"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["index_10"];
+        put?: never;
+        post: operations["create_10"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/customers/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["batch_8"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/coupons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["index_11"];
+        put?: never;
+        post: operations["create_11"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/coupons/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["batch_9"];
         delete?: never;
         options?: never;
         head?: never;
@@ -516,7 +628,7 @@ export interface paths {
         patch: operations["patch_6"];
         trace?: never;
     };
-    "/api/woocommerce/{ecommerceId}/coupons/{couponId}": {
+    "/api/woocommerce/{ecommerceId}/orders/{orderId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -532,7 +644,7 @@ export interface paths {
         patch: operations["patch_7"];
         trace?: never;
     };
-    "/api/woocommerce/{ecommerceId}/media/{productId}": {
+    "/api/woocommerce/{ecommerceId}/customers/{customerId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -543,6 +655,54 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["delete_8"];
+        options?: never;
+        head?: never;
+        patch: operations["patch_8"];
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/coupons/{couponId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["show_9"];
+        put?: never;
+        post?: never;
+        delete: operations["delete_9"];
+        options?: never;
+        head?: never;
+        patch: operations["patch_9"];
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/orders/{orderId}/refunds/{refundId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["show_10"];
+        put?: never;
+        post?: never;
+        delete: operations["delete_10"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/woocommerce/{ecommerceId}/media/{productId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["show_11"];
+        put?: never;
+        post?: never;
+        delete: operations["delete_11"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1448,6 +1608,269 @@ export interface components {
             update?: components["schemas"]["WooCommerceProductAttributeResponse"][];
             delete?: components["schemas"]["WooCommerceProductAttributeResponse"][];
         };
+        BillingPropertiesRequest: {
+            firstName?: string;
+            lastName?: string;
+            company?: string;
+            address1?: string;
+            address2?: string;
+            city?: string;
+            state?: string;
+            postcode?: string;
+            country?: string;
+            email?: string;
+            phone?: string;
+        };
+        ShippingPropertiesRequest: {
+            firstName?: string;
+            lastName?: string;
+            company?: string;
+            address1?: string;
+            address2?: string;
+            city?: string;
+            state?: string;
+            postcode?: string;
+            country?: string;
+        };
+        WoocommerceLineItemRequest: {
+            /** Format: int32 */
+            id?: number;
+            name?: string;
+            /** Format: int32 */
+            productId?: number;
+            /** Format: int32 */
+            variationId?: number;
+            /** Format: int32 */
+            quantity?: number;
+            taxClass?: string;
+            subtotal?: string;
+            total?: string;
+            metaData?: components["schemas"]["WooCommerceMetaRequest"][];
+        };
+        WoocommerceOrderRequest: {
+            /** Format: int32 */
+            id?: number;
+            /** Format: int32 */
+            parentId?: number;
+            createdVia?: string;
+            status?: string;
+            currency?: string;
+            /** Format: int32 */
+            customerId?: number;
+            customerNote?: string;
+            billing?: components["schemas"]["BillingPropertiesRequest"];
+            shipping?: components["schemas"]["ShippingPropertiesRequest"];
+            paymentMethod?: string;
+            paymentMethodTitle?: string;
+            transactionId?: string;
+            metaData?: components["schemas"]["WooCommerceMetaRequest"];
+            lineItems?: components["schemas"]["WoocommerceLineItemRequest"][];
+            setPaid?: boolean;
+        };
+        ApiResponseWoocommerceOrderResponse: {
+            success?: boolean;
+            data?: components["schemas"]["WoocommerceOrderResponse"];
+            message?: string;
+            errors?: Record<string, never>;
+        };
+        BillingPropertiesResponse: {
+            firstName?: string;
+            lastName?: string;
+            company?: string;
+            address1?: string;
+            address2?: string;
+            city?: string;
+            state?: string;
+            postcode?: string;
+            country?: string;
+            email?: string;
+            phone?: string;
+        };
+        ShippingPropertiesResponse: {
+            firstName?: string;
+            lastName?: string;
+            company?: string;
+            address1?: string;
+            address2?: string;
+            city?: string;
+            state?: string;
+            postcode?: string;
+            country?: string;
+        };
+        WoocommerceCouponLineResponse: {
+            /** Format: int32 */
+            id?: number;
+            code?: string;
+            discount?: string;
+            discountTax?: string;
+            metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+        };
+        WoocommerceFeeLineResponse: {
+            /** Format: int32 */
+            id?: number;
+            name?: string;
+            taxClass?: string;
+            total?: string;
+            totalTax?: string;
+            taxes?: components["schemas"]["WoocommerceTaxLineResponse"][];
+            metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+        };
+        WoocommerceLineItemResponse: {
+            /** Format: int32 */
+            id?: number;
+            name?: string;
+            /** Format: int32 */
+            productId?: number;
+            /** Format: int32 */
+            variationId?: number;
+            /** Format: int32 */
+            quantity?: number;
+            taxClass?: string;
+            subtotal?: string;
+            subtotalTax?: string;
+            total?: string;
+            totalTax?: string;
+            taxes?: components["schemas"]["WoocommerceTaxLineResponse"][];
+            metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+            sku?: string;
+            price?: string;
+        };
+        WoocommerceOrderResponse: {
+            /** Format: int32 */
+            id?: number;
+            /** Format: int32 */
+            parentId?: number;
+            number?: string;
+            orderKey?: string;
+            createdVia?: string;
+            version?: string;
+            /** @enum {string} */
+            status?: "pending" | "processing" | "on-hold" | "completed" | "cancelled" | "refunded" | "failed" | "trash";
+            /** @enum {string} */
+            currency?: "AED" | "AFN" | "ALL" | "AMD" | "ANG" | "AOA" | "ARS" | "AUD" | "AWG" | "AZN" | "BAM" | "BBD" | "BDT" | "BGN" | "BHD" | "BIF" | "BMD" | "BND" | "BOB" | "BRL" | "BSD" | "BTC" | "BTN" | "BWP" | "BYR" | "BZD" | "CAD" | "CDF" | "CHF" | "CLP" | "CNY" | "COP" | "CRC" | "CUC" | "CUP" | "CVE" | "CZK" | "DJF" | "DKK" | "DOP" | "DZD" | "EGP" | "ERN" | "ETB" | "EUR" | "FJD" | "FKP" | "GBP" | "GEL" | "GGP" | "GHS" | "GIP" | "GMD" | "GNF" | "GTQ" | "GYD" | "HKD" | "HNL" | "HRK" | "HTG" | "HUF" | "IDR" | "ILS" | "IMP" | "INR" | "IQD" | "IRR" | "IRT" | "ISK" | "JEP" | "JMD" | "JOD" | "JPY" | "KES" | "KGS" | "KHR" | "KMF" | "KPW" | "KRW" | "KWD" | "KYD" | "KZT" | "LAK" | "LBP" | "LKR" | "LRD" | "LSL" | "LYD" | "MAD" | "MDL" | "MGA" | "MKD" | "MMK" | "MNT" | "MOP" | "MRO" | "MUR" | "MVR" | "MWK" | "MXN" | "MYR" | "MZN" | "NAD" | "NGN" | "NIO" | "NOK" | "NPR" | "NZD" | "OMR" | "PAB" | "PEN" | "PGK" | "PHP" | "PKR" | "PLN" | "PRB" | "PYG" | "QAR" | "RON" | "RSD" | "RUB" | "RWF" | "SAR" | "SBD" | "SCR" | "SDG" | "SEK" | "SGD" | "SHP" | "SLL" | "SOS" | "SRD" | "SSP" | "STD" | "SYP" | "SZL" | "THB" | "TJS" | "TMT" | "TND" | "TOP" | "TRY" | "TTD" | "TWD" | "TZS" | "UAH" | "UGX" | "USD" | "UYU" | "UZS" | "VEF" | "VND" | "VUV" | "WST" | "XAF" | "XCD" | "XOF" | "XPF" | "YER" | "ZAR" | "ZMW";
+            dateCreated?: string;
+            dateCreatedGmt?: string;
+            dateModified?: string;
+            dateModifiedGmt?: string;
+            discountTotal?: string;
+            discountTax?: string;
+            shippingTotal?: string;
+            shippingTax?: string;
+            cartTax?: string;
+            total?: string;
+            totalTax?: string;
+            pricesIncludeTax?: boolean;
+            /** Format: int32 */
+            customerId?: number;
+            customerIpAddress?: string;
+            customerUserAgent?: string;
+            customerNote?: string;
+            billing?: components["schemas"]["BillingPropertiesResponse"];
+            shipping?: components["schemas"]["ShippingPropertiesResponse"];
+            paymentMethod?: string;
+            paymentMethodTitle?: string;
+            transactionId?: string;
+            datePaid?: string;
+            datePaidGmt?: string;
+            dateCompleted?: string;
+            dateCompletedGmt?: string;
+            cartHash?: string;
+            metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+            lineItems?: components["schemas"]["WoocommerceLineItemResponse"][];
+            taxLines?: components["schemas"]["WoocommerceTaxLineResponse"][];
+            shippingLines?: components["schemas"]["WoocommerceShippingLineResponse"][];
+            feeLines?: components["schemas"]["WoocommerceFeeLineResponse"][];
+            couponLines?: components["schemas"]["WoocommerceCouponLineResponse"][];
+            refunds?: components["schemas"]["WoocommerceRefoundPropertiesResponse"][];
+            createdAt?: string;
+            updatedAt?: string;
+            createdAtGmt?: string;
+            updatedAtGmt?: string;
+        };
+        WoocommerceRefoundPropertiesResponse: {
+            /** Format: int32 */
+            id?: number;
+            reason?: string;
+            note?: string;
+        };
+        WoocommerceShippingLineResponse: {
+            /** Format: int32 */
+            id?: number;
+            /** Format: int32 */
+            methodId?: number;
+            methodTitle?: string;
+            total?: string;
+            totalTax?: string;
+            taxes?: components["schemas"]["WoocommerceTaxLineResponse"];
+            metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+        };
+        WoocommerceTaxLineResponse: {
+            /** Format: int32 */
+            id?: number;
+            rateCode?: string;
+            /** Format: int32 */
+            rateId?: number;
+            label?: string;
+            compound?: boolean;
+            taxTotal?: string;
+            shippingTaxTotal?: string;
+            metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+        };
+        WoocommerceOrderRefundRequest: {
+            amount?: string;
+            reason?: string;
+            refoundedBy?: string;
+            metaData?: components["schemas"]["WooCommerceMetaRequest"][];
+            lineItems?: components["schemas"]["WoocommerceLineItemRequest"][];
+            apiRefound?: boolean;
+            apiRestock?: string;
+        };
+        ApiResponseWoocommerceOrderRefundResponse: {
+            success?: boolean;
+            data?: components["schemas"]["WoocommerceOrderRefundResponse"];
+            message?: string;
+            errors?: Record<string, never>;
+        };
+        WoocommerceOrderRefundResponse: {
+            /** Format: int32 */
+            id?: number;
+            dateCreated?: string;
+            dateCreatedGmt?: string;
+            amount?: string;
+            reason?: string;
+            refoundedBy?: string;
+            refoundedPayment?: boolean;
+            metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+            lineItems?: components["schemas"]["WoocommerceLineItemResponse"][];
+            taxLines?: components["schemas"]["WoocommerceTaxLineResponse"][];
+            shippingLines?: components["schemas"]["WoocommerceShippingLineResponse"][];
+            feeLines?: components["schemas"]["WoocommerceFeeLineResponse"][];
+        };
+        ApiResponseMessageResponse: {
+            success?: boolean;
+            data?: components["schemas"]["MessageResponse"];
+            message?: string;
+            errors?: Record<string, never>;
+        };
+        MessageResponse: {
+            message?: string;
+        };
+        BatchWoocommerceOrderRequest: {
+            create?: components["schemas"]["WoocommerceOrderRequest"][];
+            update?: components["schemas"]["WoocommerceOrderRequest"][];
+            delete?: number[];
+        };
+        ApiResponseBatchWoocommerceOrderResponse: {
+            success?: boolean;
+            data?: components["schemas"]["BatchWoocommerceOrderResponse"];
+            message?: string;
+            errors?: Record<string, never>;
+        };
+        BatchWoocommerceOrderResponse: {
+            create?: components["schemas"]["WoocommerceOrderResponse"][];
+            update?: components["schemas"]["WoocommerceOrderResponse"][];
+            delete?: components["schemas"]["WoocommerceOrderResponse"][];
+        };
         CreateWordpressMediaRequest: {
             title?: string;
             caption?: string;
@@ -1504,6 +1927,74 @@ export interface components {
             createdAtGmt?: string;
             updatedAtGmt?: string;
         };
+        WoocommerceCreateCustomerRequest: {
+            /** Format: int32 */
+            id?: number;
+            email?: string;
+            firstName?: string;
+            lastName?: string;
+            username?: string;
+            password?: string;
+            billing?: components["schemas"]["BillingPropertiesRequest"];
+            shipping?: components["schemas"]["ShippingPropertiesRequest"];
+            metaData?: components["schemas"]["WooCommerceMetaRequest"][];
+        };
+        ApiResponseWoocommerceCustomerResponse: {
+            success?: boolean;
+            data?: components["schemas"]["WoocommerceCustomerResponse"];
+            message?: string;
+            errors?: Record<string, never>;
+        };
+        WoocommerceCustomerResponse: {
+            /** Format: int32 */
+            id?: number;
+            createdAt?: string;
+            createdAtGmt?: string;
+            updatedAt?: string;
+            updatedAtGmt?: string;
+            email?: string;
+            firstName?: string;
+            lastName?: string;
+            role?: string;
+            username?: string;
+            billing?: components["schemas"]["BillingPropertiesResponse"];
+            shipping?: components["schemas"]["ShippingPropertiesResponse"];
+            isPayingCustomer?: boolean;
+            avatarUrl?: string;
+            dateCreated?: string;
+            dateCreatedGmt?: string;
+            dateModified?: string;
+            dateModifiedGmt?: string;
+            metaData?: components["schemas"]["WooCommerceMetaResponse"][];
+        };
+        BatchWoocommerceCustomerRequest: {
+            create?: components["schemas"]["WoocommerceCreateCustomerRequest"][];
+            update?: components["schemas"]["WoocommerceCustomerRequest"][];
+            delete?: number[];
+        };
+        WoocommerceCustomerRequest: {
+            /** Format: int32 */
+            id?: number;
+            email?: string;
+            firstName?: string;
+            lastName?: string;
+            username?: string;
+            password?: string;
+            billing?: components["schemas"]["BillingPropertiesRequest"];
+            shipping?: components["schemas"]["ShippingPropertiesRequest"];
+            metaData?: components["schemas"]["WooCommerceMetaRequest"][];
+        };
+        ApiResponseBatchWoocommerceCustomerResponse: {
+            success?: boolean;
+            data?: components["schemas"]["BatchWoocommerceCustomerResponse"];
+            message?: string;
+            errors?: Record<string, never>;
+        };
+        BatchWoocommerceCustomerResponse: {
+            create?: components["schemas"]["WoocommerceCustomerResponse"][];
+            update?: components["schemas"]["WoocommerceCustomerResponse"][];
+            delete?: components["schemas"]["WoocommerceCustomerResponse"][];
+        };
         WoocommerceCreateCouponRequest: {
             /** Format: int32 */
             id?: number;
@@ -1513,8 +2004,7 @@ export interface components {
             dateCreatedGmt?: string;
             dateModified?: string;
             dateModifiedGmt?: string;
-            /** @enum {string} */
-            discountType?: "percent" | "fixed_cart" | "fixed_product";
+            discountType?: string;
             description?: string;
             dateExpires?: string;
             dateExpiresGmt?: string;
@@ -1598,8 +2088,7 @@ export interface components {
             dateCreatedGmt?: string;
             dateModified?: string;
             dateModifiedGmt?: string;
-            /** @enum {string} */
-            discountType?: "percent" | "fixed_cart" | "fixed_product";
+            discountType?: string;
             description?: string;
             dateExpires?: string;
             dateExpiresGmt?: string;
@@ -1793,6 +2282,40 @@ export interface components {
             /** Format: int32 */
             totalPages?: number;
         };
+        ApiResponsePageWoocommerceOrderResponse: {
+            success?: boolean;
+            data?: components["schemas"]["PageWoocommerceOrderResponse"];
+            message?: string;
+            errors?: Record<string, never>;
+        };
+        PageWoocommerceOrderResponse: {
+            items?: components["schemas"]["WoocommerceOrderResponse"][];
+            /** Format: int32 */
+            currentPage?: number;
+            /** Format: int32 */
+            itemsInPage?: number;
+            /** Format: int32 */
+            totalItems?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        ApiResponsePageWoocommerceOrderRefundResponse: {
+            success?: boolean;
+            data?: components["schemas"]["PageWoocommerceOrderRefundResponse"];
+            message?: string;
+            errors?: Record<string, never>;
+        };
+        PageWoocommerceOrderRefundResponse: {
+            items?: components["schemas"]["WoocommerceOrderRefundResponse"][];
+            /** Format: int32 */
+            currentPage?: number;
+            /** Format: int32 */
+            itemsInPage?: number;
+            /** Format: int32 */
+            totalItems?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         ApiResponsePageWordpressMediaResponse: {
             success?: boolean;
             data?: components["schemas"]["PageWordpressMediaResponse"];
@@ -1801,6 +2324,23 @@ export interface components {
         };
         PageWordpressMediaResponse: {
             items?: components["schemas"]["WordpressMediaResponse"][];
+            /** Format: int32 */
+            currentPage?: number;
+            /** Format: int32 */
+            itemsInPage?: number;
+            /** Format: int32 */
+            totalItems?: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        ApiResponsePageWoocommerceCustomerResponse: {
+            success?: boolean;
+            data?: components["schemas"]["PageWoocommerceCustomerResponse"];
+            message?: string;
+            errors?: Record<string, never>;
+        };
+        PageWoocommerceCustomerResponse: {
+            items?: components["schemas"]["WoocommerceCustomerResponse"][];
             /** Format: int32 */
             currentPage?: number;
             /** Format: int32 */
@@ -2710,12 +3250,188 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ApiResponsePageWordpressMediaResponse"];
+                    "*/*": components["schemas"]["ApiResponsePageWoocommerceOrderResponse"];
                 };
             };
         };
     };
     create_7: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WoocommerceOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseWoocommerceOrderResponse"];
+                };
+            };
+        };
+    };
+    index_8: {
+        parameters: {
+            query: {
+                request: components["schemas"]["IndexRequest"];
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageWoocommerceOrderRefundResponse"];
+                };
+            };
+        };
+    };
+    create_8: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WoocommerceOrderRefundRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseWoocommerceOrderRefundResponse"];
+                };
+            };
+        };
+    };
+    sendOrderDetailsToCustomer: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseMessageResponse"];
+                };
+            };
+        };
+    };
+    sendOrderNotificationEmailToCustomer: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseMessageResponse"];
+                };
+            };
+        };
+    };
+    batch_7: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchWoocommerceOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseBatchWoocommerceOrderResponse"];
+                };
+            };
+        };
+    };
+    index_9: {
+        parameters: {
+            query: {
+                request: components["schemas"]["IndexRequest"];
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageWordpressMediaResponse"];
+                };
+            };
+        };
+    };
+    create_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -2742,7 +3458,82 @@ export interface operations {
             };
         };
     };
-    index_8: {
+    index_10: {
+        parameters: {
+            query: {
+                request: components["schemas"]["IndexRequest"];
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageWoocommerceCustomerResponse"];
+                };
+            };
+        };
+    };
+    create_10: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WoocommerceCreateCustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseWoocommerceCustomerResponse"];
+                };
+            };
+        };
+    };
+    batch_8: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchWoocommerceCustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseBatchWoocommerceCustomerResponse"];
+                };
+            };
+        };
+    };
+    index_11: {
         parameters: {
             query: {
                 request: components["schemas"]["IndexRequest"];
@@ -2765,7 +3556,7 @@ export interface operations {
             };
         };
     };
-    create_8: {
+    create_11: {
         parameters: {
             query: {
                 userEcommerce: components["schemas"]["UserEcommerce"];
@@ -2791,7 +3582,7 @@ export interface operations {
             };
         };
     };
-    batch_7: {
+    batch_9: {
         parameters: {
             query: {
                 userEcommerce: components["schemas"]["UserEcommerce"];
@@ -3502,6 +4293,162 @@ export interface operations {
             };
             header?: never;
             path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseWoocommerceOrderResponse"];
+                };
+            };
+        };
+    };
+    delete_7: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseBoolean"];
+                };
+            };
+        };
+    };
+    patch_7: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WoocommerceOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseWoocommerceOrderResponse"];
+                };
+            };
+        };
+    };
+    show_8: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                customerId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseWoocommerceCustomerResponse"];
+                };
+            };
+        };
+    };
+    delete_8: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                customerId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseBoolean"];
+                };
+            };
+        };
+    };
+    patch_8: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                customerId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WoocommerceCustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseWoocommerceCustomerResponse"];
+                };
+            };
+        };
+    };
+    show_9: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
                 couponId: number;
             };
             cookie?: never;
@@ -3519,7 +4466,7 @@ export interface operations {
             };
         };
     };
-    delete_7: {
+    delete_9: {
         parameters: {
             query: {
                 userEcommerce: components["schemas"]["UserEcommerce"];
@@ -3543,7 +4490,7 @@ export interface operations {
             };
         };
     };
-    patch_7: {
+    patch_9: {
         parameters: {
             query: {
                 userEcommerce: components["schemas"]["UserEcommerce"];
@@ -3571,7 +4518,57 @@ export interface operations {
             };
         };
     };
-    show_8: {
+    show_10: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                refundId: number;
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseWoocommerceOrderRefundResponse"];
+                };
+            };
+        };
+    };
+    delete_10: {
+        parameters: {
+            query: {
+                userEcommerce: components["schemas"]["UserEcommerce"];
+            };
+            header?: never;
+            path: {
+                refundId: number;
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponseBoolean"];
+                };
+            };
+        };
+    };
+    show_11: {
         parameters: {
             query: {
                 userEcommerce: components["schemas"]["UserEcommerce"];
@@ -3595,7 +4592,7 @@ export interface operations {
             };
         };
     };
-    delete_8: {
+    delete_11: {
         parameters: {
             query: {
                 userEcommerce: components["schemas"]["UserEcommerce"];

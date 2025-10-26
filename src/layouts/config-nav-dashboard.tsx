@@ -10,9 +10,7 @@ const svgIcon = (name: string) => (
 );
 
 // Funzione per icone Iconify
-const iconify = (name: string) => (
-  <Icon icon={name} width={24} height={24} />
-);
+const iconify = (name: string) => <Icon icon={name} width={24} height={24} />;
 
 export const navData = [
   {
@@ -61,12 +59,17 @@ export const navData = [
     icon: iconify('mdi:tag-outline'),
   },
   {
-    title: 'Gestione media',
+    title: 'Clienti',
+    path: '/clienti',
+    icon: iconify('mdi:account-multiple-outline'),
+  },
+  {
+    title: 'Media',
     path: '/files',
     icon: iconify('mdi:file-outline'),
   },
   {
-    title: 'Gestione brands',
+    title: 'Brands',
     path: '/brands',
     icon: iconify('mdi:tag-outline'),
   },

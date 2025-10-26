@@ -22,6 +22,7 @@ export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 export const TagsPage = lazy(() => import('src/pages/tags'));
 export const ImportProdottiPage = lazy(() => import('src/pages/import-prodotti'));
+export const ClientiPage = lazy(() => import('src/pages/clienti'));
 export const SeoConfigPage = lazy(() => import('src/pages/seo-config'));
 export const ProdottiPage = lazy(() => import('src/pages/prodotti'));
 export const ProdottoPage = lazy(() => import('src/pages/prodotto'));
@@ -58,6 +59,7 @@ export function Router() {
         // { path: 'user', element: <UserPage /> },
         { path: 'categorie', element: <CategoriePage /> },
         { path: 'tags', element: <TagsPage /> },
+        { path: 'clienti', element: <ClientiPage /> },
         { path: 'files', element: <FilesPage /> },
         { path: 'import-prodotti', element: <ImportProdottiPage /> },
         { path: 'attributi', element: <AttributiPage /> },
