@@ -17,19 +17,15 @@ import { useForm, Controller } from 'react-hook-form';
 import { usePutCoupon } from 'src/hooks/usePutCoupon';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
+import { useCouponDiscountType } from 'src/hooks/useCouponDiscountType';
 
 interface CouponFormProps {
   coupon: Coupon;
   onSubmit: (data: any) => void;
 }
 
-const DISCOUNT_TYPES = [
-  { value: 'percent', label: 'Percentuale' },
-  { value: 'fixed_cart', label: 'Importo Fisso (carrello)' },
-  { value: 'fixed_product', label: 'Importo Fisso (prodotto)' },
-];
-
 export function CouponForm({ coupon, onSubmit }: CouponFormProps) {
+  const { types } = useCouponDiscountType();
   const {
     register,
     handleSubmit,
@@ -193,7 +189,7 @@ export function CouponForm({ coupon, onSubmit }: CouponFormProps) {
               <FormControl fullWidth>
                 <InputLabel>Tipo Sconto</InputLabel>
                 <Select {...field} value={field.value || 'percent'} label="Tipo Sconto">
-                  {DISCOUNT_TYPES.map((type) => (
+                  {types.map((type) => (
                     <MenuItem key={type.value} value={type.value}>
                       {type.label}
                     </MenuItem>

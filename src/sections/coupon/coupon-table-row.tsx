@@ -13,6 +13,7 @@ import { Coupon } from 'src/types/Coupon';
 import { useCallback, useState } from 'react';
 import { Iconify } from 'src/components/iconify';
 import { useDeleteCoupon } from 'src/hooks/useDeleteCoupon';
+import { useCouponDiscountType } from 'src/hooks/useCouponDiscountType';
 
 type CouponTableRowProps = {
   row: Coupon;
@@ -20,15 +21,12 @@ type CouponTableRowProps = {
   onEdit: (coupon: Coupon) => void;
 };
 
-const discountTypeColors: Record<string, 'success' | 'info' | 'warning'> = {
-  percent: 'success',
-  fixed_cart: 'info',
-  fixed_product: 'info',
-};
-
 export function CouponTableRow({ row, selected, onEdit }: CouponTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const { mutate: deleteCoupon, isPending: isDeleting } = useDeleteCoupon();
+  const { getTypeInfo } = useCouponDiscountType();
+
+  const typeInfo = getTypeInfo(row.discountType);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -56,8 +54,8 @@ export function CouponTableRow({ row, selected, onEdit }: CouponTableRowProps) {
         <TableCell>{row.amount || '-'}</TableCell>
         <TableCell>
           <Chip
-            label={row.discountType || '-'}
-            color={discountTypeColors[row.discountType || ''] || 'default'}
+            label={typeInfo?.label || row.discountType || '-'}
+            color={typeInfo?.color || 'default'}
             size="small"
           />
         </TableCell>

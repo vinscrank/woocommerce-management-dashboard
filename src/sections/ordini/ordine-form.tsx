@@ -20,23 +20,16 @@ import { usePutOrdine } from 'src/hooks/usePutOrdine';
 import { Iconify } from 'src/components/iconify';
 import { useAccordionStyles } from 'src/hooks/useAccordionStyles';
 import dayjs from 'dayjs';
+import { useOrderStatus } from 'src/hooks/useOrderStatus';
 
 interface OrdineFormProps {
   ordine: Ordine;
   onSubmit: (data: any) => void;
 }
 
-const ORDER_STATUSES = [
-  { value: 'pending', label: 'In attesa' },
-  { value: 'processing', label: 'In elaborazione' },
-  { value: 'on-hold', label: 'In sospeso' },
-  { value: 'completed', label: 'Completato' },
-  { value: 'cancelled', label: 'Cancellato' },
-  { value: 'refunded', label: 'Rimborsato' },
-  { value: 'failed', label: 'Fallito' },
-];
-
 export function OrdineForm({ ordine, onSubmit }: OrdineFormProps) {
+  const { statuses } = useOrderStatus();
+
   const {
     register,
     handleSubmit,
@@ -347,7 +340,7 @@ export function OrdineForm({ ordine, onSubmit }: OrdineFormProps) {
                   value={field.value || ordine?.status || 'pending'}
                   label="Stato Ordine"
                 >
-                  {ORDER_STATUSES.map((status) => (
+                  {statuses.map((status) => (
                     <MenuItem key={status.value} value={status.value}>
                       {status.label}
                     </MenuItem>

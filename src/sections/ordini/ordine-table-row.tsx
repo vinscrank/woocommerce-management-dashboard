@@ -13,6 +13,7 @@ import { Ordine } from 'src/types/Ordine';
 import { useCallback, useState } from 'react';
 import { Iconify } from 'src/components/iconify';
 import { useDeleteOrdine } from 'src/hooks/useDeleteOrdine';
+import { useOrderStatus } from 'src/hooks/useOrderStatus';
 
 type OrdineTableRowProps = {
   row: Ordine;
@@ -33,6 +34,9 @@ const statusColors: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
 export function OrdineTableRow({ row, selected, onEdit }: OrdineTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const { mutate: deleteOrdine, isPending: isDeleting } = useDeleteOrdine();
+  const { getStatusInfo } = useOrderStatus();
+
+  const statusInfo = getStatusInfo(row.status);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -63,8 +67,8 @@ export function OrdineTableRow({ row, selected, onEdit }: OrdineTableRowProps) {
         <TableCell>{row.billing?.email || '-'}</TableCell>
         <TableCell>
           <Chip
-            label={row.status || '-'}
-            color={statusColors[row.status || ''] || 'default'}
+            label={statusInfo?.label || row.status || '-'}
+            color={statusInfo?.color || 'default'}
             size="small"
           />
         </TableCell>
