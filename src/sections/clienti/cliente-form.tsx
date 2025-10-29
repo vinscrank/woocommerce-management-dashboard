@@ -39,8 +39,8 @@ export function ClienteForm({ cliente, onSubmit }: ClienteFormProps) {
       billingFirst: cliente?.billing?.firstName || '',
       billingLast: cliente?.billing?.lastName || '',
       billingCompany: cliente?.billing?.company || '',
-      billingAddress1: cliente?.billing?.address1 || '',
-      billingAddress2: cliente?.billing?.address2 || '',
+      billingAddress1: cliente?.billing?.address_1 || '',
+      billingAddress2: cliente?.billing?.address_2 || '',
       billingCity: cliente?.billing?.city || '',
       billingState: cliente?.billing?.state || '',
       billingPostcode: cliente?.billing?.postcode || '',
@@ -51,8 +51,8 @@ export function ClienteForm({ cliente, onSubmit }: ClienteFormProps) {
       shippingFirst: cliente?.shipping?.firstName || '',
       shippingLast: cliente?.shipping?.lastName || '',
       shippingCompany: cliente?.shipping?.company || '',
-      shippingAddress1: cliente?.shipping?.address1 || '',
-      shippingAddress2: cliente?.shipping?.address2 || '',
+      shippingAddress1: cliente?.shipping?.address_1 || '',
+      shippingAddress2: cliente?.shipping?.address_2 || '',
       shippingCity: cliente?.shipping?.city || '',
       shippingState: cliente?.shipping?.state || '',
       shippingPostcode: cliente?.shipping?.postcode || '',
@@ -103,8 +103,8 @@ export function ClienteForm({ cliente, onSubmit }: ClienteFormProps) {
       if (data.billingFirst) clienteData.billing.firstName = data.billingFirst;
       if (data.billingLast) clienteData.billing.lastName = data.billingLast;
       if (data.billingCompany) clienteData.billing.company = data.billingCompany;
-      if (data.billingAddress1) clienteData.billing.address1 = data.billingAddress1;
-      if (data.billingAddress2) clienteData.billing.address2 = data.billingAddress2;
+      if (data.billingAddress1) clienteData.billing.address_1 = data.billingAddress1;
+      if (data.billingAddress2) clienteData.billing.address_2 = data.billingAddress2;
       if (data.billingCity) clienteData.billing.city = data.billingCity;
       if (data.billingState) clienteData.billing.state = data.billingState;
       if (data.billingPostcode) clienteData.billing.postcode = data.billingPostcode;
@@ -122,8 +122,8 @@ export function ClienteForm({ cliente, onSubmit }: ClienteFormProps) {
       if (data.shippingFirst) clienteData.shipping.firstName = data.shippingFirst;
       if (data.shippingLast) clienteData.shipping.lastName = data.shippingLast;
       if (data.shippingCompany) clienteData.shipping.company = data.shippingCompany;
-      if (data.shippingAddress1) clienteData.shipping.address1 = data.shippingAddress1;
-      if (data.shippingAddress2) clienteData.shipping.address2 = data.shippingAddress2;
+      if (data.shippingAddress1) clienteData.shipping.address_1 = data.shippingAddress1;
+      if (data.shippingAddress2) clienteData.shipping.address_2 = data.shippingAddress2;
       if (data.shippingCity) clienteData.shipping.city = data.shippingCity;
       if (data.shippingState) clienteData.shipping.state = data.shippingState;
       if (data.shippingPostcode) clienteData.shipping.postcode = data.shippingPostcode;
@@ -172,16 +172,29 @@ export function ClienteForm({ cliente, onSubmit }: ClienteFormProps) {
       }
     }
 
+    // Rimuovi metaData se presente (sono read-only e possono causare errori se hanno valori vuoti)
+    if (clienteData.metaData) {
+      delete clienteData.metaData;
+    }
+
     // Debug: log dei dati che stiamo inviando
     console.log('Cliente data da inviare:', JSON.stringify(clienteData, null, 2));
 
     if (cliente) {
+      // In modalità update, rimuovi i campi read-only e metaData
+      const { metaData, ...clienteClean } = cliente;
+
       // In modalità update, merge con i dati esistenti ma priorità ai nuovi dati
       const updateData: any = {
-        ...cliente,
+        ...clienteClean,
         ...clienteData,
         id: cliente.id,
       };
+
+      // Rimuovi definitivamente metaData se presente
+      if (updateData.metaData) {
+        delete updateData.metaData;
+      }
 
       // Se billing è vuoto ma esisteva prima, rimuovilo completamente
       if (!clienteData.billing && cliente.billing) {

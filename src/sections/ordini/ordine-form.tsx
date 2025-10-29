@@ -45,8 +45,8 @@ export function OrdineForm({ ordine, onSubmit }: OrdineFormProps) {
       billingFirst: ordine?.billing?.firstName || '',
       billingLast: ordine?.billing?.lastName || '',
       billingCompany: ordine?.billing?.company || '',
-      billingAddress1: ordine?.billing?.address1 || '',
-      billingAddress2: ordine?.billing?.address2 || '',
+      billingAddress1: ordine?.billing?.address_1 || '',
+      billingAddress2: ordine?.billing?.address_2 || '',
       billingCity: ordine?.billing?.city || '',
       billingState: ordine?.billing?.state || '',
       billingPostcode: ordine?.billing?.postcode || '',
@@ -57,8 +57,8 @@ export function OrdineForm({ ordine, onSubmit }: OrdineFormProps) {
       shippingFirst: ordine?.shipping?.firstName || '',
       shippingLast: ordine?.shipping?.lastName || '',
       shippingCompany: ordine?.shipping?.company || '',
-      shippingAddress1: ordine?.shipping?.address1 || '',
-      shippingAddress2: ordine?.shipping?.address2 || '',
+      shippingAddress1: ordine?.shipping?.address_1 || '',
+      shippingAddress2: ordine?.shipping?.address_2 || '',
       shippingCity: ordine?.shipping?.city || '',
       shippingState: ordine?.shipping?.state || '',
       shippingPostcode: ordine?.shipping?.postcode || '',
@@ -130,8 +130,8 @@ export function OrdineForm({ ordine, onSubmit }: OrdineFormProps) {
       if (data.billingFirst) ordineData.billing.firstName = data.billingFirst;
       if (data.billingLast) ordineData.billing.lastName = data.billingLast;
       if (data.billingCompany) ordineData.billing.company = data.billingCompany;
-      if (data.billingAddress1) ordineData.billing.address1 = data.billingAddress1;
-      if (data.billingAddress2) ordineData.billing.address2 = data.billingAddress2;
+      if (data.billingAddress1) ordineData.billing.address_1 = data.billingAddress1;
+      if (data.billingAddress2) ordineData.billing.address_2 = data.billingAddress2;
       if (data.billingCity) ordineData.billing.city = data.billingCity;
       if (data.billingState) ordineData.billing.state = data.billingState;
       if (data.billingPostcode) ordineData.billing.postcode = data.billingPostcode;
@@ -147,8 +147,8 @@ export function OrdineForm({ ordine, onSubmit }: OrdineFormProps) {
       if (data.shippingFirst) ordineData.shipping.firstName = data.shippingFirst;
       if (data.shippingLast) ordineData.shipping.lastName = data.shippingLast;
       if (data.shippingCompany) ordineData.shipping.company = data.shippingCompany;
-      if (data.shippingAddress1) ordineData.shipping.address1 = data.shippingAddress1;
-      if (data.shippingAddress2) ordineData.shipping.address2 = data.shippingAddress2;
+      if (data.shippingAddress1) ordineData.shipping.address_1 = data.shippingAddress1;
+      if (data.shippingAddress2) ordineData.shipping.address_2 = data.shippingAddress2;
       if (data.shippingCity) ordineData.shipping.city = data.shippingCity;
       if (data.shippingState) ordineData.shipping.state = data.shippingState;
       if (data.shippingPostcode) ordineData.shipping.postcode = data.shippingPostcode;
