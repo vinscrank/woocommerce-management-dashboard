@@ -164,7 +164,7 @@ export function CategoriaForm({ categoria, onSubmit, onDelete }: CategoriaFormPr
             value={watch('parent')}
             onChange={(parentId) => setValue('parent', parentId as any, { shouldDirty: true })}
             currentCategoriaId={categoria?.id}
-            perPage={5}
+            perPage={25}
           />
         </Grid>
 
